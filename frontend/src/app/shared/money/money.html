@@ -1,0 +1,8 @@
+<span class="app-money">
+  @if (parts().negative) {
+    <span>&minus;</span>
+  }
+  <span class="symbol">€</span>
+  <span class="whole">{{ parts().whole }}</span>
+  <span class="cents">,{{ parts().cents }}</span>
+</span>
