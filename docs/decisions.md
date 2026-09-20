@@ -278,3 +278,71 @@ created.
 resources and every business rule end to end, and because it cleans up after itself it can be run
 repeatedly against the same database. Writing it as `.bru` text files keeps the diffs reviewable.
 
+## 0030 — Angular 22 needs neither Zone.js nor `@angular/animations`
+
+**Decision.** The app runs zoneless (no `zone.js` dependency, change detection driven by signals)
+and without `provideAnimations`/`provideAnimationsAsync`.
+
+**Why.** `ng new` no longer scaffolds Zone.js by default, which suits a signals-first app. Angular
+Material 22's peer dependencies no longer include `@angular/animations` either — its components now
+animate with plain CSS — so adding the package back would just be dead weight.
+
+## 0031 — Fonts and icons are bundled via `@fontsource`, not Google Fonts
+
+**Decision.** `@fontsource/roboto` (300/400/500) and `@fontsource/material-symbols-outlined` are
+npm dependencies imported from `styles.scss`; `index.html` has no `fonts.googleapis.com` links. A
+small `.material-symbols-outlined` utility class defines the ligature-font rules that Google's own
+stylesheet would otherwise provide, and `MAT_ICON_DEFAULT_OPTIONS` points every `mat-icon` at it.
+
+**Why.** `docker compose up` must work offline: a build step or a container with no internet access
+should not depend on fetching fonts from Google at request time.
+
+## 0032 — The selected month lives in the router, not in a stored signal
+
+**Decision.** `MonthStateService` derives `selected` from the root route's `?month=YYYY-MM` query
+parameter (via `toSignal` on `router.routerState.root.queryParamMap`) instead of holding its own
+`signal<MonthValue>`. `next()`/`previous()`/`set()` all go through `router.navigate`.
+
+**Why.** The brief requires the month to survive in the URL (shareable links, reload, back button).
+Keeping a separate signal in sync with the URL is two sources of truth that can drift; reading the
+URL directly means there is exactly one.
+
+## 0033 — Categories keep their own signal-based store, not a shared one
+
+**Decision.** `CategoryStore` is the only per-feature state service so far: a `signal<Category[]>`
+plus `loading`/`loadError`, loaded once and patched in place by `create`/`update`/`delete`.
+
+**Why.** Matches "state via signal-based services, no NgRx" from the brief. A category list is
+short-lived, single-collection state — a signal service is the whole solution; introducing a
+shared/global store now would be speculative for a feature this small.
+
+## 0034 — The error interceptor skips the toast for 400 validation errors
+
+**Decision.** The functional `errorInterceptor` shows a snackbar for every failed request except a
+400 whose body has an `errors` object.
+
+**Why.** Those errors are field-level and a form maps them onto the matching control right next to
+where the user is looking; a toast repeating the same message would just be noise. A 409 (e.g. a
+duplicate category name) has no `errors` object, so it still gets the toast — and the category form
+additionally puts it under the Name field, since the brief asks for that conflict to be shown clearly.
+
+## 0035 — A category's type is a `mat-radio-group`, not a `mat-button-toggle-group`
+
+**Decision.** The create/edit dialog picks Income vs. Expense with `mat-radio-group`.
+
+**Why.** `mat-button-toggle-group` in the installed Angular Material 22 build clips its own height
+to a single line box (an upstream rendering bug found while verifying the dialog live: the group's
+`.mat-button-toggle-button` children measured 40px tall but the group container measured under 17px,
+cutting the labels off), while `mat-radio-group` renders correctly and is just as suited to a
+two-option mutually exclusive choice.
+
+## 0036 — Routing only exists for what is built
+
+**Decision.** `app.routes.ts` currently only defines `/categories` (lazy-loaded) and redirects
+everything else there. Dashboard, transactions and budgets get their routes in the phases that build
+them.
+
+**Why.** The brief rules out placeholder implementations. A `/dashboard` route pointing at an empty
+stub page would be exactly that; better to grow the route table alongside the features and keep the
+default redirect honest about what currently exists.
+
