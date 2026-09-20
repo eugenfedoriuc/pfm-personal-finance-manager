@@ -217,3 +217,64 @@ handler renders it as an `errors` entry, producing the same body as a failed `Fl
 but from the client's perspective they are still field errors. Giving them the same shape lets the
 Angular form map every 400 the same way, whether the value failed a format rule or a business rule.
 
+## 0024 — The monthly summary is computed by a pure calculator
+
+**Decision.** `MonthlySummaryCalculator` is a static class that takes the month, its transactions,
+its budgets and the categories, and returns the finished response. `SummaryService` only loads those
+four things and calls it.
+
+**Why.** This is the part of the app with real arithmetic — totals, percentages, budget overruns,
+cumulative daily expenses — and it is the part most worth testing. With no I/O and no clock in the
+way, every case (empty month, ties, exact limit, leap-year February) is a plain function call.
+
+## 0025 — The budget fields of a comparison are null together
+
+**Decision.** In `budgetComparison`, `limit`, `remaining` and `overBy` are all null exactly when the
+category has no budget for the month. `isOverBudget` is a plain `false` in that case, and `spent` is
+always a number.
+
+**Why.** Business rule 6 puts categories without a budget in the same list as budgeted ones, so the
+client needs a single unambiguous check. One null test on `limit` decides between showing a progress
+bar and showing "Budget erstellen"; a zero limit would be indistinguishable from a real limit of 0.
+
+## 0026 — The summary is ordered deterministically, without the server's locale
+
+**Decision.** Breakdowns are sorted by amount descending and ties alphabetically by name;
+`budgetComparison` is sorted by category name. All name comparisons use
+`StringComparer.InvariantCulture`.
+
+**Why.** Business rule 5 asks for alphabetical tie-breaking, and the top expense category is simply
+the first entry of the already-sorted expense breakdown — one ordering rule instead of two. Pinning
+the comparer means the output does not change with the container's locale, which also keeps the
+tests honest.
+
+## 0027 — `dailyExpenses` covers every day of the month
+
+**Decision.** The API returns one entry per calendar day, including days with no expenses, and the
+cumulative total carries across them. Cutting the series off at today for the current month is left
+to the chart.
+
+**Why.** A chart needs a continuous x-axis, and building the gaps client-side would duplicate the
+leap-year and month-length logic that the server already has. What "today" is depends on the user's
+time zone, so the server has no business deciding it.
+
+## 0028 — Percentages are rounded to two decimals and need not add up to 100
+
+**Decision.** `percentage` is `amount / total * 100`, rounded to two decimals; a total of zero
+yields zero rather than an error.
+
+**Why.** Rounded shares can add up to 99.99 or 100.01, and forcing the last one to absorb the
+difference would make a category's percentage depend on its position in the list. The UI shows these
+as a rough share next to the exact amount, so the exactness belongs on the amount.
+
+## 0029 — The Bruno collection is an ordered, self-cleaning run
+
+**Decision.** `api-collection/bruno` is a `.bru` collection with folders sequenced Health →
+Categories → Transactions → Budgets → Summaries → Cleanup. Requests capture ids into runtime
+variables, carry assertions on status and payload, and the Cleanup folder removes everything the run
+created.
+
+**Why.** It doubles as an executable smoke test: `bru run --env Local -r` exercises all four
+resources and every business rule end to end, and because it cleans up after itself it can be run
+repeatedly against the same database. Writing it as `.bru` text files keeps the diffs reviewable.
+
