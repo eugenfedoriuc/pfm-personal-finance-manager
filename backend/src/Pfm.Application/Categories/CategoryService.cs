@@ -8,18 +8,21 @@ namespace Pfm.Application.Categories;
 /// Use cases for categories. Input is assumed to be validated by the API layer; what is enforced
 /// here are the rules that need the stored state.
 /// </summary>
-public sealed class CategoryService(ICategoryRepository categories)
+public sealed class CategoryService(
+    ICategoryRepository categories,
+    ITransactionRepository transactions,
+    IBudgetRepository budgets)
 {
     public async Task<IReadOnlyList<CategoryResponse>> GetAllAsync(CancellationToken cancellationToken)
     {
         var stored = await categories.GetAllAsync(cancellationToken);
-        return [.. stored.Select(ToResponse)];
+        return [.. stored.Select(CategoryResponse.From)];
     }
 
     public async Task<CategoryResponse> GetAsync(string id, CancellationToken cancellationToken)
     {
         var category = await categories.GetByIdAsync(id, cancellationToken) ?? throw NotFound(id);
-        return ToResponse(category);
+        return CategoryResponse.From(category);
     }
 
     public async Task<CategoryResponse> CreateAsync(CreateCategoryRequest request, CancellationToken cancellationToken)
@@ -33,7 +36,7 @@ public sealed class CategoryService(ICategoryRepository categories)
         };
 
         await categories.InsertAsync(category, cancellationToken);
-        return ToResponse(category);
+        return CategoryResponse.From(category);
     }
 
     public async Task<CategoryResponse> UpdateAsync(string id, UpdateCategoryRequest request, CancellationToken cancellationToken)
@@ -49,19 +52,27 @@ public sealed class CategoryService(ICategoryRepository categories)
             throw NotFound(id);
         }
 
-        return ToResponse(category);
+        return CategoryResponse.From(category);
     }
 
     public async Task DeleteAsync(string id, CancellationToken cancellationToken)
     {
+        var category = await categories.GetByIdAsync(id, cancellationToken) ?? throw NotFound(id);
+
+        if (await transactions.ExistsForCategoryAsync(id, cancellationToken))
+        {
+            throw new ConflictException(
+                $"\"{category.Name}\" kann nicht gelöscht werden, solange noch Transaktionen darauf gebucht sind.");
+        }
+
+        // The budgets of a category are meaningless without it, so they go with it.
+        await budgets.DeleteForCategoryAsync(id, cancellationToken);
+
         if (!await categories.DeleteAsync(id, cancellationToken))
         {
             throw NotFound(id);
         }
     }
-
-    private static CategoryResponse ToResponse(Category category) =>
-        new(category.Id, category.Name, category.Type, category.Icon, category.Color);
 
     private static NotFoundException NotFound(string id) =>
         new($"Die Kategorie \"{id}\" wurde nicht gefunden.");
