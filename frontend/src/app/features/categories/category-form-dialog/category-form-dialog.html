@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Kategorie bearbeiten' : 'Kategorie erstellen' }}</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content class="form-content">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" maxlength="50" required />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>Der Name darf nicht leer sein.</mat-error>
+      }
+      @if (form.controls.name.hasError('maxlength')) {
+        <mat-error>Der Name darf höchstens 50 Zeichen lang sein.</mat-error>
+      }
+      @if (form.controls.name.hasError('server')) {
+        <mat-error>{{ form.controls.name.getError('server') }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-radio-group formControlName="type" aria-label="Typ" class="type-picker">
+      @for (type of types; track type) {
+        <mat-radio-button [value]="type">{{ typeLabels[type] }}</mat-radio-button>
+      }
+    </mat-radio-group>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Symbol</mat-label>
+      <mat-select formControlName="icon" required>
+        @for (icon of icons; track icon.value) {
+          <mat-option [value]="icon.value">
+            <mat-icon fontSet="material-symbols-outlined">{{ icon.value }}</mat-icon>
+            {{ icon.label }}
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <div class="color-picker" role="radiogroup" aria-label="Farbe">
+      @for (color of colors; track color) {
+        <button
+          type="button"
+          class="color-swatch"
+          [style.background-color]="color"
+          [class.color-swatch--selected]="form.controls.color.value === color"
+          role="radio"
+          [attr.aria-checked]="form.controls.color.value === color"
+          [attr.aria-label]="color"
+          (click)="selectColor(color)"
+        ></button>
+      }
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>Abbrechen</button>
+    <button mat-flat-button type="submit" [disabled]="form.invalid || submitting()">
+      @if (submitting()) {
+        <mat-progress-spinner diameter="18" mode="indeterminate" />
+      } @else {
+        Speichern
+      }
+    </button>
+  </mat-dialog-actions>
+</form>

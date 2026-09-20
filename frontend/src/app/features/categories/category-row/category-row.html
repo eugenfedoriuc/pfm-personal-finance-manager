@@ -1,0 +1,14 @@
+<div class="category-row">
+  <span class="category-row__icon" [style.background-color]="category().color + '26'" [style.color]="category().color">
+    <mat-icon fontSet="material-symbols-outlined">{{ category().icon }}</mat-icon>
+  </span>
+
+  <span class="category-row__name">{{ category().name }}</span>
+
+  <button mat-icon-button type="button" (click)="edit.emit()" [attr.aria-label]="'Kategorie ' + category().name + ' bearbeiten'">
+    <mat-icon>edit</mat-icon>
+  </button>
+  <button mat-icon-button type="button" (click)="delete.emit()" [attr.aria-label]="'Kategorie ' + category().name + ' löschen'">
+    <mat-icon>delete</mat-icon>
+  </button>
+</div>

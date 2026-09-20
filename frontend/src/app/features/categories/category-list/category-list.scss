@@ -1,0 +1,24 @@
+.category-list {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.category-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+mat-card {
+  padding: 16px;
+}
+
+.state-card {
+  padding: 24px;
+  text-align: center;
+}
