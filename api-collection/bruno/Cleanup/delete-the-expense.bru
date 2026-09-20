@@ -1,0 +1,15 @@
+meta {
+  name: Delete the expense
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{baseUrl}}/api/transactions/{{expenseTransactionId}}
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 204
+}

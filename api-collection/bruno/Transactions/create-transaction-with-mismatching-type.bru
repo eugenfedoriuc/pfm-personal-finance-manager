@@ -1,0 +1,40 @@
+meta {
+  name: Create transaction with mismatching type (400)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/api/transactions
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "type": "Income",
+    "amount": 10,
+    "date": "{{monthDate}}-05",
+    "categoryId": "{{expenseCategoryId}}",
+    "description": null
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("reports the rule against the field the user picked", function() {
+    expect(res.getBody().errors).to.have.property("categoryId");
+  });
+}
+
+docs {
+  Business rule 1: a transaction must have the same type as its category. The rule needs
+  stored state, but it is still reported as a field error so the form can show it inline.
+}

@@ -1,0 +1,15 @@
+meta {
+  name: Delete the income
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/transactions/{{incomeTransactionId}}
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 204
+}

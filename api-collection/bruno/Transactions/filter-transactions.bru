@@ -1,0 +1,28 @@
+meta {
+  name: Filter transactions by type and category
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/api/transactions?year={{year}}&month={{month}}&type=Expense&categoryId={{groceriesCategoryId}}
+  body: none
+  auth: none
+}
+
+params:query {
+  year: {{year}}
+  month: {{month}}
+  type: Expense
+  categoryId: {{groceriesCategoryId}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("narrows down to the requested category", function() {
+    expect(res.getBody().every(t => t.category.name === "Lebensmittel")).to.be.true;
+  });
+}

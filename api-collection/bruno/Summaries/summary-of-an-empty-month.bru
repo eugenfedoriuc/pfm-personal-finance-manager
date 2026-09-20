@@ -1,0 +1,29 @@
+meta {
+  name: Summary of an empty month
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/summaries/1900/1
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("returns zeroed totals and no top category", function() {
+    const summary = res.getBody();
+    expect(summary.totalIncome).to.equal(0);
+    expect(summary.totalExpenses).to.equal(0);
+    expect(summary.topExpenseCategory).to.be.null;
+    expect(summary.expenseBreakdown).to.be.empty;
+  });
+
+  test("still returns every day of the month", function() {
+    expect(res.getBody().dailyExpenses).to.have.lengthOf(31);
+  });
+}

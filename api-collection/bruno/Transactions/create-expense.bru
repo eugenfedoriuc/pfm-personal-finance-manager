@@ -1,0 +1,39 @@
+meta {
+  name: Create expense
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/transactions
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "type": "Expense",
+    "amount": 900.00,
+    "date": "{{monthDate}}-01",
+    "categoryId": "{{expenseCategoryId}}",
+    "description": "Märzmiete"
+  }
+}
+
+vars:post-response {
+  expenseTransactionId: res.body.id
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("embeds the category so a list needs no second request", function() {
+    expect(res.getBody().category.name).to.equal("Miete");
+  });
+}

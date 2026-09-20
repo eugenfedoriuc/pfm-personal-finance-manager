@@ -1,0 +1,36 @@
+meta {
+  name: Set an exceeded budget
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/budgets
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "categoryId": "{{groceriesCategoryId}}",
+    "year": {{year}},
+    "month": {{month}},
+    "limit": 20.00
+  }
+}
+
+vars:post-response {
+  groceriesBudgetId: res.body.id
+}
+
+assert {
+  res.status: eq 200
+}
+
+docs {
+  A deliberately low limit, so the monthly summary later shows an overrun for this category.
+}

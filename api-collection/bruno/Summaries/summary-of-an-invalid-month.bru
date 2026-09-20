@@ -1,0 +1,21 @@
+meta {
+  name: Summary of an invalid month (400)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/summaries/{{year}}/13
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("reports the offending route value", function() {
+    expect(res.getBody().errors).to.have.property("month");
+  });
+}

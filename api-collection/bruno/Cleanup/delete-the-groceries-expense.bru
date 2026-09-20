@@ -1,0 +1,15 @@
+meta {
+  name: Delete the groceries expense
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/transactions/{{groceriesTransactionId}}
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 204
+}

@@ -1,0 +1,34 @@
+meta {
+  name: Create invalid category (400)
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/categories
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "name": "",
+    "type": "Expense",
+    "icon": "Not An Icon",
+    "color": "rot"
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("reports one error per offending field, keyed like the JSON payload", function() {
+    expect(Object.keys(res.getBody().errors).sort()).to.eql(["color", "icon", "name"]);
+  });
+}

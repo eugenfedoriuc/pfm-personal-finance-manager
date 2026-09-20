@@ -1,0 +1,36 @@
+meta {
+  name: List transactions of the month
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/transactions?year={{year}}&month={{month}}
+  body: none
+  auth: none
+}
+
+params:query {
+  year: {{year}}
+  month: {{month}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("returns the month newest first", function() {
+    const dates = res.getBody().map(t => t.date);
+    expect(dates).to.eql([...dates].sort().reverse());
+  });
+
+  test("only contains days of the requested month", function() {
+    expect(res.getBody().every(t => t.date.startsWith(bru.getEnvVar("monthDate")))).to.be.true;
+  });
+}
+
+docs {
+  `year` and `month` are required: every screen in the app is month-scoped, and the
+  query uses the half-open range [first of the month, first of the next month).
+}

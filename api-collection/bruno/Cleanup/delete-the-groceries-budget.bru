@@ -1,0 +1,20 @@
+meta {
+  name: Delete the groceries budget
+  type: http
+  seq: 6
+}
+
+delete {
+  url: {{baseUrl}}/api/budgets/{{groceriesBudgetId}}
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 204
+}
+
+docs {
+  After this request the database is back to the seeded state, so the whole collection
+  can be run again from the top.
+}

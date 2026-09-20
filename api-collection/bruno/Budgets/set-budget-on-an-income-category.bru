@@ -1,0 +1,38 @@
+meta {
+  name: Set budget on an income category (400)
+  type: http
+  seq: 5
+}
+
+put {
+  url: {{baseUrl}}/api/budgets
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "categoryId": "{{incomeCategoryId}}",
+    "year": {{year}},
+    "month": {{month}},
+    "limit": 100.00
+  }
+}
+
+assert {
+  res.status: eq 400
+}
+
+tests {
+  test("reports the rule against the category field", function() {
+    expect(res.getBody().errors).to.have.property("categoryId");
+  });
+}
+
+docs {
+  Business rule 2: only expense categories can be budgeted.
+}

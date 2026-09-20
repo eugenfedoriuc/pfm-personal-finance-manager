@@ -1,0 +1,35 @@
+meta {
+  name: Replace the same budget
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/budgets
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "categoryId": "{{expenseCategoryId}}",
+    "year": {{year}},
+    "month": {{month}},
+    "limit": 900.00
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.limit: eq 900.00
+}
+
+tests {
+  test("upserts instead of creating a second budget", function() {
+    expect(res.getBody().id).to.equal(bru.getVar("budgetId"));
+  });
+}

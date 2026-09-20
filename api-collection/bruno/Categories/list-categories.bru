@@ -1,0 +1,33 @@
+meta {
+  name: List categories
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/categories
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:post-response {
+  const categories = res.getBody();
+  bru.setVar("expenseCategoryId", categories.find(c => c.name === "Miete").id);
+  bru.setVar("groceriesCategoryId", categories.find(c => c.name === "Lebensmittel").id);
+  bru.setVar("incomeCategoryId", categories.find(c => c.name === "Gehalt").id);
+}
+
+tests {
+  test("returns the seeded categories", function() {
+    expect(res.getBody().map(c => c.name)).to.include.members(["Gehalt", "Miete", "Lebensmittel"]);
+  });
+}
+
+docs {
+  Run this first: it captures the ids of the seeded categories into the runtime
+  variables that the later requests use.
+}

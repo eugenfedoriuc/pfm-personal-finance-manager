@@ -1,0 +1,26 @@
+meta {
+  name: List budgets of the month
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/api/budgets?year={{year}}&month={{month}}
+  body: none
+  auth: none
+}
+
+params:query {
+  year: {{year}}
+  month: {{month}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("returns both budgets of the month", function() {
+    expect(res.getBody()).to.have.lengthOf(2);
+  });
+}

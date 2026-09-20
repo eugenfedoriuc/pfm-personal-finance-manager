@@ -1,0 +1,20 @@
+meta {
+  name: Delete category with transactions (409)
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{baseUrl}}/api/categories/{{expenseCategoryId}}
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 409
+}
+
+docs {
+  Business rule 3: a category that still has transactions cannot be deleted. The
+  following requests remove the transactions this run created.
+}

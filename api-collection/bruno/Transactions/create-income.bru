@@ -1,0 +1,33 @@
+meta {
+  name: Create income
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/transactions
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "type": "Income",
+    "amount": 2500,
+    "date": "{{monthDate}}-31",
+    "categoryId": "{{incomeCategoryId}}",
+    "description": "Gehalt"
+  }
+}
+
+vars:post-response {
+  incomeTransactionId: res.body.id
+}
+
+assert {
+  res.status: eq 201
+}

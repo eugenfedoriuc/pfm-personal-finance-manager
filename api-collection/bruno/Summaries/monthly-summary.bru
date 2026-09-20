@@ -1,0 +1,57 @@
+meta {
+  name: Monthly summary
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/summaries/{{year}}/{{month}}
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  const summary = res.getBody();
+
+  test("balance is income minus expenses", function() {
+    expect(summary.balance).to.equal(summary.totalIncome - summary.totalExpenses);
+  });
+
+  test("the top expense category is the largest one", function() {
+    expect(summary.topExpenseCategory.name).to.equal("Miete");
+    expect(summary.expenseBreakdown[0].name).to.equal("Miete");
+  });
+
+  test("the breakdown percentages add up to the whole", function() {
+    const total = summary.expenseBreakdown.reduce((sum, item) => sum + item.percentage, 0);
+    expect(total).to.be.closeTo(100, 0.01);
+  });
+
+  test("an exceeded budget reports by how much", function() {
+    const groceries = summary.budgetComparison.find(b => b.categoryName === "Lebensmittel");
+    expect(groceries.isOverBudget).to.be.true;
+    expect(groceries.remaining).to.be.below(0);
+    // Tolerance, not equality: the API subtracts in decimal, JavaScript in binary floating point.
+    expect(groceries.overBy).to.be.closeTo(groceries.spent - groceries.limit, 0.001);
+  });
+
+  test("there is one entry per day of the month", function() {
+    const daysInMonth = new Date(Number(bru.getEnvVar("year")), Number(bru.getEnvVar("month")), 0).getDate();
+    expect(summary.dailyExpenses).to.have.lengthOf(daysInMonth);
+  });
+
+  test("the cumulative expenses end at the month total", function() {
+    const last = summary.dailyExpenses[summary.dailyExpenses.length - 1];
+    expect(last.cumulative).to.equal(summary.totalExpenses);
+  });
+}
+
+docs {
+  Everything the dashboard needs in one request: totals, per-category breakdown,
+  budget against actual, the largest expense category, and the cumulative daily
+  expenses that feed the line chart.
+}

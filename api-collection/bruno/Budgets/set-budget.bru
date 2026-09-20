@@ -1,0 +1,39 @@
+meta {
+  name: Set budget
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/api/budgets
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "categoryId": "{{expenseCategoryId}}",
+    "year": {{year}},
+    "month": {{month}},
+    "limit": 800.00
+  }
+}
+
+vars:post-response {
+  budgetId: res.body.id
+}
+
+assert {
+  res.status: eq 200
+  res.body.limit: eq 800.00
+}
+
+docs {
+  The budget is identified by category, year and month, so this one request both creates
+  and replaces the limit. It answers 200 rather than 201, because budgets are always read
+  per month and there is no `GET /api/budgets/{id}` for a Location header to point at.
+}

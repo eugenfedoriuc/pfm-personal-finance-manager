@@ -1,0 +1,30 @@
+meta {
+  name: Update transaction
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/api/transactions/{{expenseTransactionId}}
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "type": "Expense",
+    "amount": 950.50,
+    "date": "{{monthDate}}-01",
+    "categoryId": "{{expenseCategoryId}}",
+    "description": "Märzmiete inkl. Betriebskosten"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.amount: eq 950.50
+}

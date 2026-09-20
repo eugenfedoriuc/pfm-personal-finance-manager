@@ -1,0 +1,34 @@
+meta {
+  name: Update category
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/categories/{{scratchCategoryId}}
+  body: json
+  auth: none
+}
+
+headers {
+  content-type: application/json
+}
+
+body:json {
+  {
+    "name": "Sparen und Anlegen",
+    "icon": "savings",
+    "color": "#AD1457"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.name: eq Sparen und Anlegen
+  res.body.type: eq Expense
+}
+
+docs {
+  The payload has no `type`: a category keeps the type it was created with, because
+  transactions and budgets depend on it.
+}
