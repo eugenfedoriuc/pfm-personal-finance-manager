@@ -17,6 +17,8 @@ public static class DependencyInjection
         services.AddSingleton<MongoContext>();
 
         services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<IBudgetRepository, BudgetRepository>();
 
         services.AddHostedService<MongoInitializer>();
 

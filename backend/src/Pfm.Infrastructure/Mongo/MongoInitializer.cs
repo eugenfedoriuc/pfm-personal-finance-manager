@@ -32,6 +32,29 @@ internal sealed class MongoInitializer(MongoContext context, ILogger<MongoInitia
             });
 
         await context.Categories.Indexes.CreateOneAsync(uniqueNamePerType, cancellationToken: cancellationToken);
+
+        // Serves the month filter; the compound index additionally serves the per-category drill-down.
+        await context.Transactions.Indexes.CreateManyAsync(
+            [
+                new CreateIndexModel<Transaction>(
+                    Builders<Transaction>.IndexKeys.Ascending(transaction => transaction.Date),
+                    new CreateIndexOptions { Name = "ix_transactions_date" }),
+                new CreateIndexModel<Transaction>(
+                    Builders<Transaction>.IndexKeys
+                        .Ascending(transaction => transaction.CategoryId)
+                        .Ascending(transaction => transaction.Date),
+                    new CreateIndexOptions { Name = "ix_transactions_category_date" })
+            ],
+            cancellationToken);
+
+        var oneBudgetPerCategoryAndMonth = new CreateIndexModel<Budget>(
+            Builders<Budget>.IndexKeys
+                .Ascending(budget => budget.CategoryId)
+                .Ascending(budget => budget.Year)
+                .Ascending(budget => budget.Month),
+            new CreateIndexOptions { Name = "ux_budgets_category_year_month", Unique = true });
+
+        await context.Budgets.Indexes.CreateOneAsync(oneBudgetPerCategoryAndMonth, cancellationToken: cancellationToken);
     }
 
     private async Task SeedCategoriesAsync(CancellationToken cancellationToken)

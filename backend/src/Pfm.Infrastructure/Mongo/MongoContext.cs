@@ -19,4 +19,8 @@ public sealed class MongoContext
     }
 
     public IMongoCollection<Category> Categories => _database.GetCollection<Category>("categories");
+
+    public IMongoCollection<Transaction> Transactions => _database.GetCollection<Transaction>("transactions");
+
+    public IMongoCollection<Budget> Budgets => _database.GetCollection<Budget>("budgets");
 }
