@@ -30,6 +30,9 @@ public sealed record MonthRange
     /// <summary>First day of the following month, exclusive.</summary>
     public DateOnly EndExclusive { get; }
 
+    /// <summary>Days in the month, so callers do not repeat the leap-year handling.</summary>
+    public int DayCount => DateTime.DaysInMonth(Year, Month);
+
     /// <exception cref="ValidationException">The year or the month is out of range.</exception>
     public static MonthRange Of(int year, int month)
     {

@@ -51,4 +51,16 @@ public sealed class MonthRangeTests
 
         Assert.Equal("year", exception.PropertyName);
     }
+
+    [Theory]
+    [InlineData(2025, 1, 31)]
+    [InlineData(2025, 2, 28)]
+    [InlineData(2024, 2, 29)]
+    [InlineData(2000, 2, 29)]
+    [InlineData(1900, 2, 28)]
+    [InlineData(2025, 4, 30)]
+    public void DayCount_MatchesTheCalendar(int year, int month, int expected)
+    {
+        Assert.Equal(expected, MonthRange.Of(year, month).DayCount);
+    }
 }
