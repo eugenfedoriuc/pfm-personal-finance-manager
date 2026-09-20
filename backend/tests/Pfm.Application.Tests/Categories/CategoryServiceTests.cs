@@ -9,32 +9,36 @@ namespace Pfm.Application.Tests.Categories;
 
 public sealed class CategoryServiceTests
 {
-    private readonly ICategoryRepository _repository = Substitute.For<ICategoryRepository>();
+    private readonly ICategoryRepository _categories = Substitute.For<ICategoryRepository>();
+    private readonly ITransactionRepository _transactions = Substitute.For<ITransactionRepository>();
+    private readonly IBudgetRepository _budgets = Substitute.For<IBudgetRepository>();
     private readonly CategoryService _service;
 
-    public CategoryServiceTests() => _service = new CategoryService(_repository);
+    public CategoryServiceTests() => _service = new CategoryService(_categories, _transactions, _budgets);
 
     [Fact]
     public async Task GetAllAsync_MapsEveryCategory()
     {
         IReadOnlyList<Category> stored =
         [
-            CreateCategory("1", "Gehalt", TransactionType.Income),
-            CreateCategory("2", "Miete", TransactionType.Expense)
+            TestData.Category(TestData.IncomeCategoryId, "Gehalt", TransactionType.Income),
+            TestData.Category(TestData.ExpenseCategoryId, "Miete")
         ];
-        _repository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(stored);
+        _categories.GetAllAsync(Arg.Any<CancellationToken>()).Returns(stored);
 
         var result = await _service.GetAllAsync(CancellationToken.None);
 
         Assert.Equal(2, result.Count);
-        Assert.Equal(new CategoryResponse("1", "Gehalt", TransactionType.Income, "payments", "#2E7D32"), result[0]);
+        Assert.Equal(
+            new CategoryResponse(TestData.IncomeCategoryId, "Gehalt", TransactionType.Income, "payments", "#2E7D32"),
+            result[0]);
         Assert.Equal("Miete", result[1].Name);
     }
 
     [Fact]
     public async Task GetAsync_ThrowsNotFound_WhenCategoryDoesNotExist()
     {
-        _repository.GetByIdAsync("missing", Arg.Any<CancellationToken>()).Returns((Category?)null);
+        _categories.GetByIdAsync("missing", Arg.Any<CancellationToken>()).Returns((Category?)null);
 
         await Assert.ThrowsAsync<NotFoundException>(() => _service.GetAsync("missing", CancellationToken.None));
     }
@@ -43,7 +47,7 @@ public sealed class CategoryServiceTests
     public async Task CreateAsync_TrimsNameAndNormalisesColour()
     {
         Category? inserted = null;
-        _repository
+        _categories
             .InsertAsync(Arg.Do<Category>(category => inserted = category), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
@@ -60,12 +64,12 @@ public sealed class CategoryServiceTests
     [Fact]
     public async Task UpdateAsync_ChangesNameIconAndColourButKeepsType()
     {
-        _repository.GetByIdAsync("1", Arg.Any<CancellationToken>())
-            .Returns(CreateCategory("1", "Miete", TransactionType.Expense));
-        _repository.UpdateAsync(Arg.Any<Category>(), Arg.Any<CancellationToken>()).Returns(true);
+        _categories.GetByIdAsync(TestData.ExpenseCategoryId, Arg.Any<CancellationToken>())
+            .Returns(TestData.Category());
+        _categories.UpdateAsync(Arg.Any<Category>(), Arg.Any<CancellationToken>()).Returns(true);
 
         var response = await _service.UpdateAsync(
-            "1",
+            TestData.ExpenseCategoryId,
             new UpdateCategoryRequest("Wohnen", "home", "#1565c0"),
             CancellationToken.None);
 
@@ -78,30 +82,49 @@ public sealed class CategoryServiceTests
     [Fact]
     public async Task UpdateAsync_ThrowsNotFound_WhenTheCategoryDisappearsBeforeTheWrite()
     {
-        _repository.GetByIdAsync("1", Arg.Any<CancellationToken>())
-            .Returns(CreateCategory("1", "Miete", TransactionType.Expense));
-        _repository.UpdateAsync(Arg.Any<Category>(), Arg.Any<CancellationToken>()).Returns(false);
+        _categories.GetByIdAsync(TestData.ExpenseCategoryId, Arg.Any<CancellationToken>())
+            .Returns(TestData.Category());
+        _categories.UpdateAsync(Arg.Any<Category>(), Arg.Any<CancellationToken>()).Returns(false);
 
         await Assert.ThrowsAsync<NotFoundException>(() => _service.UpdateAsync(
-            "1",
+            TestData.ExpenseCategoryId,
             new UpdateCategoryRequest("Wohnen", "home", "#1565C0"),
             CancellationToken.None));
     }
 
     [Fact]
-    public async Task DeleteAsync_ThrowsNotFound_WhenNothingWasDeleted()
+    public async Task DeleteAsync_ThrowsNotFound_WhenCategoryDoesNotExist()
     {
-        _repository.DeleteAsync("missing", Arg.Any<CancellationToken>()).Returns(false);
+        _categories.GetByIdAsync("missing", Arg.Any<CancellationToken>()).Returns((Category?)null);
 
         await Assert.ThrowsAsync<NotFoundException>(() => _service.DeleteAsync("missing", CancellationToken.None));
     }
 
-    private static Category CreateCategory(string id, string name, TransactionType type) => new()
+    [Fact]
+    public async Task DeleteAsync_ThrowsConflict_WhenTransactionsAreStillBookedOnTheCategory()
     {
-        Id = id,
-        Name = name,
-        Type = type,
-        Icon = type == TransactionType.Income ? "payments" : "home",
-        Color = type == TransactionType.Income ? "#2E7D32" : "#1565C0"
-    };
+        _categories.GetByIdAsync(TestData.ExpenseCategoryId, Arg.Any<CancellationToken>())
+            .Returns(TestData.Category());
+        _transactions.ExistsForCategoryAsync(TestData.ExpenseCategoryId, Arg.Any<CancellationToken>()).Returns(true);
+
+        var exception = await Assert.ThrowsAsync<ConflictException>(
+            () => _service.DeleteAsync(TestData.ExpenseCategoryId, CancellationToken.None));
+
+        Assert.Contains("Miete", exception.Message);
+        await _categories.DidNotReceive().DeleteAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _budgets.DidNotReceive().DeleteForCategoryAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task DeleteAsync_AlsoRemovesTheBudgetsOfTheCategory()
+    {
+        _categories.GetByIdAsync(TestData.ExpenseCategoryId, Arg.Any<CancellationToken>())
+            .Returns(TestData.Category());
+        _transactions.ExistsForCategoryAsync(TestData.ExpenseCategoryId, Arg.Any<CancellationToken>()).Returns(false);
+        _categories.DeleteAsync(TestData.ExpenseCategoryId, Arg.Any<CancellationToken>()).Returns(true);
+
+        await _service.DeleteAsync(TestData.ExpenseCategoryId, CancellationToken.None);
+
+        await _budgets.Received(1).DeleteForCategoryAsync(TestData.ExpenseCategoryId, Arg.Any<CancellationToken>());
+    }
 }
