@@ -59,3 +59,84 @@ disclosure for an app that has no authentication.
 **Why.** The brief rules out libraries that moved to a commercial licence (FluentAssertions,
 AutoMapper, MediatR). NSubstitute is MIT-licensed and only used where hand-writing a fake
 repository would add noise without adding clarity.
+
+## 0007 — User-facing API messages are German
+
+**Decision.** Code, comments and documentation are English, but the `detail` of a `ProblemDetails`
+and every validation message are German.
+
+**Why.** The UI is German and the HTTP interceptor puts these messages straight into a snackbar.
+Translating them a second time in the frontend would mean maintaining the same catalogue twice for
+an app that has exactly one locale.
+
+## 0008 — Entity ids are `string`, stored as `ObjectId`
+
+**Decision.** `Category.Id` is a `string` in the domain; the class map serialises it as an
+`ObjectId` and lets MongoDB generate it on insert.
+
+**Why.** Keeps `MongoDB.Bson.ObjectId` out of the domain and out of the API contract, while the
+database still gets the compact, index-friendly native type. Ids that are not parsable as an
+`ObjectId` are treated as "not found" by the repository instead of throwing.
+
+## 0009 — A category's type cannot be changed
+
+**Decision.** `PUT /api/categories/{id}` updates name, icon and colour only.
+
+**Why.** Transactions must match the type of their category (business rule 1) and budgets only
+exist for expense categories. Allowing the type to flip would silently invalidate existing
+transactions and budgets, and repairing that would need a cascade that this app does not warrant.
+Creating a second category and moving the transactions is the explicit alternative.
+
+## 0010 — Icon and colour are validated by format, the choices live in the UI
+
+**Decision.** The API accepts any Material Symbol name (`^[a-z][a-z0-9_]{0,39}$`) and any hex
+triplet (`#RRGGBB`); the fixed sets the user can pick from are defined in the frontend.
+
+**Why.** A fixed palette is a presentation concern. Duplicating the exact list on both sides would
+mean two places to change whenever a colour is added, without making the data any safer — the
+format check already rules out anything that would break rendering.
+
+## 0011 — Duplicate names are prevented by a case-insensitive unique index
+
+**Decision.** A unique index on `(name, type)` with collation `de`, strength 2. The repository
+translates the resulting duplicate-key error into a `ConflictException` (HTTP 409).
+
+**Why.** The index is the only check that cannot race, so there is no "does it exist?" query before
+the insert: one round trip, and the database is the single source of truth. Strength 2 ignores case
+and accents, so "Miete" and "miete" are recognised as the same category.
+
+## 0012 — Seeding only fills an empty collection
+
+**Decision.** `MongoInitializer` inserts the five default categories when the collection contains
+no documents at all, and does nothing otherwise.
+
+**Why.** It is idempotent across restarts and, unlike a per-category upsert, it does not resurrect
+a default category that the user deliberately deleted.
+
+## 0013 — Startup fails if MongoDB is unreachable
+
+**Decision.** Index creation and seeding run in an `IHostedService` before the server starts
+listening. If MongoDB is down, the host fails to start.
+
+**Why.** An API that answers requests without its indexes is worse than one that is visibly down.
+`docker compose` handles the ordering with a health check on the database.
+
+## 0014 — One `ProblemDetails` shape for every invalid input
+
+**Decision.** A global action filter runs the FluentValidation validators, and
+`ApiBehaviorOptions.InvalidModelStateResponseFactory` is overridden so that model-binding failures
+produce the same `ValidationProblemDetails` with the same German title. Error keys are camelCased to
+match the JSON payload and the Angular form controls. `AllowInputFormatterExceptionMessages` is
+disabled so that deserializer messages do not leak internal type names.
+
+**Why.** The frontend maps `errors` onto form controls by key; it should not have to deal with two
+different error formats depending on whether a value failed to parse or failed a rule.
+
+## 0015 — `PUT` returns the updated resource
+
+**Decision.** `PUT /api/categories/{id}` responds `200 OK` with the updated representation,
+`DELETE` responds `204 No Content`.
+
+**Why.** The client needs the stored result (the name is trimmed, the colour is uppercased) to
+refresh its list without a second `GET`.
+
