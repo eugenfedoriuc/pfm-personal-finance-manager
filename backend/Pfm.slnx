@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Pfm.Api/Pfm.Api.csproj" />
+    <Project Path="src/Pfm.Application/Pfm.Application.csproj" />
+    <Project Path="src/Pfm.Domain/Pfm.Domain.csproj" />
+    <Project Path="src/Pfm.Infrastructure/Pfm.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Pfm.Application.Tests/Pfm.Application.Tests.csproj" />
+  </Folder>
+</Solution>
