@@ -1,0 +1,13 @@
+.app-toolbar__title {
+  font-weight: 500;
+  margin-right: 24px;
+}
+
+.app-toolbar__nav {
+  display: flex;
+  gap: 8px;
+}
+
+.active-link {
+  text-decoration: underline;
+}
