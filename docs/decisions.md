@@ -140,3 +140,80 @@ different error formats depending on whether a value failed to parse or failed a
 **Why.** The client needs the stored result (the name is trimmed, the colour is uppercased) to
 refresh its list without a second `GET`.
 
+## 0016 — Dates are stored as `yyyy-MM-dd` strings
+
+**Decision.** `Transaction.Date` is a `DateOnly` and is serialised with
+`DateOnlySerializer(BsonType.String)`, so a booking is stored as `"2025-03-04"`.
+
+**Why.** There is no time and no time zone to get wrong, and the value is readable in `mongosh`.
+ISO-8601 dates are fixed width, so the lexicographic order is the chronological order and range
+queries still use the index — verified with `explain()`, which reports index bounds
+`["2025-03-01", "2025-04-01")` on `ix_transactions_date`.
+
+**Alternative considered.** UTC midnight `DateTime`. It would enable MongoDB's date aggregation
+operators, which this app does not use, in exchange for a value that silently shifts as soon as
+anything converts it to a local time.
+
+## 0017 — Money is stored as `Decimal128`
+
+**Decision.** `Amount` and `Limit` are `decimal` in C# and are mapped with
+`DecimalSerializer(BsonType.Decimal128)`. The OpenAPI document reports them as `format: decimal`.
+
+**Why.** Binary floating point cannot represent amounts like `0.1` exactly, and the errors
+accumulate in exactly the sums this app is about. The default OpenAPI format for `decimal` is
+`double`, which would advertise the opposite of what happens, so a schema transformer corrects it.
+
+## 0018 — The half-open month range lives in `MonthRange`
+
+**Decision.** Every month-scoped endpoint takes a mandatory `year` and `month`, turns them into a
+`MonthRange`, and queries `[Start, EndExclusive)` (business rule 4). `MonthRange.Of` validates the
+bounds and is the only place the range is defined.
+
+**Why.** Off-by-one errors at month boundaries are the classic bug in this kind of app, and the
+rule is easier to trust when it exists once and has its own unit tests (December rollover, leap-year
+February). Making the month mandatory is honest: every screen is month-scoped, and an unbounded
+listing has no caller.
+
+## 0019 — Create and update share one transaction contract
+
+**Decision.** `POST` and `PUT /api/transactions` both take `TransactionRequest`.
+
+**Why.** Both operations accept exactly the same fields. Two identical records would only be
+duplication. Categories are different, and therefore keep separate contracts: the type can be set on
+creation but not changed afterwards (0009).
+
+## 0020 — Transactions and budgets embed their category
+
+**Decision.** `TransactionResponse` and `BudgetResponse` contain the full `CategoryResponse` rather
+than a bare `categoryId`.
+
+**Why.** Every list that shows a transaction also shows the category's name, icon and colour, so the
+alternative is a join on the client for every screen. The categories are a handful of documents, so
+the service reads them once per request and maps in memory — no `$lookup`, no N+1.
+
+## 0021 — `PUT /api/budgets` always answers `200 OK`
+
+**Decision.** The upsert returns `200` whether it created or replaced the limit, instead of `201`
+plus a `Location` header on first write.
+
+**Why.** There is no `GET /api/budgets/{id}` to point a `Location` at — budgets are always read per
+month — so a `201` would advertise a URL that does not exist.
+
+## 0022 — The budget upsert is a single `findOneAndUpdate`
+
+**Decision.** `BudgetRepository.UpsertAsync` runs one `findOneAndUpdate` with `IsUpsert` against the
+`(categoryId, year, month)` equality filter and returns the document after the write.
+
+**Why.** Read-then-write would race with itself and needs two round trips. The equality filter
+fields are applied automatically when the upsert inserts, so only the limit has to be written, and
+the unique index on the same three fields guarantees there is never a second budget for a month.
+
+## 0023 — Domain rule violations carry the field they belong to
+
+**Decision.** `ValidationException` takes a property name alongside its message, and the exception
+handler renders it as an `errors` entry, producing the same body as a failed `FluentValidation` rule.
+
+**Why.** Rules such as "the type must match the category" can only be checked against stored state,
+but from the client's perspective they are still field errors. Giving them the same shape lets the
+Angular form map every 400 the same way, whether the value failed a format rule or a business rule.
+
