@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Pfm.Application.Budgets;
 using Pfm.Application.Categories;
+using Pfm.Application.Summaries;
 using Pfm.Application.Transactions;
 
 namespace Pfm.Application;
@@ -14,6 +15,7 @@ public static class DependencyInjection
         services.AddScoped<CategoryService>();
         services.AddScoped<TransactionService>();
         services.AddScoped<BudgetService>();
+        services.AddScoped<SummaryService>();
 
         services.AddSingleton<IValidator<CreateCategoryRequest>, CreateCategoryRequestValidator>();
         services.AddSingleton<IValidator<UpdateCategoryRequest>, UpdateCategoryRequestValidator>();
