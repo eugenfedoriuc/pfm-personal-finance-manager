@@ -33,7 +33,7 @@ internal sealed class ValidationFilter : IAsyncActionFilter
 
             foreach (var failure in result.Errors)
             {
-                errors.AddModelError(ToCamelCase(failure.PropertyName), failure.ErrorMessage);
+                errors.AddModelError(ValidationProblemFactory.ToCamelCase(failure.PropertyName), failure.ErrorMessage);
             }
         }
 
@@ -45,8 +45,4 @@ internal sealed class ValidationFilter : IAsyncActionFilter
 
         await next();
     }
-
-    /// <summary>Aligns the error keys with the camelCase property names used in JSON and in the UI forms.</summary>
-    private static string ToCamelCase(string propertyName) =>
-        propertyName.Length == 0 ? propertyName : char.ToLowerInvariant(propertyName[0]) + propertyName[1..];
 }

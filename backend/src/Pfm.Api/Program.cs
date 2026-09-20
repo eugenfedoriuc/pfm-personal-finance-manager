@@ -35,7 +35,17 @@ builder.Services.AddCors(options => options.AddPolicy(frontendCorsPolicy, policy
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddHealthChecks();
-builder.Services.AddOpenApi();
+
+builder.Services.AddOpenApi(options => options.AddSchemaTransformer((schema, context, _) =>
+{
+    // The default is "double", which contradicts how money is actually carried and stored.
+    if (context.JsonTypeInfo.Type == typeof(decimal) || context.JsonTypeInfo.Type == typeof(decimal?))
+    {
+        schema.Format = "decimal";
+    }
+
+    return Task.CompletedTask;
+}));
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);

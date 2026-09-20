@@ -17,13 +17,8 @@ internal sealed class GlobalExceptionHandler(
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var (statusCode, title, detail) = exception switch
-        {
-            NotFoundException => (StatusCodes.Status404NotFound, "Nicht gefunden", exception.Message),
-            ConflictException => (StatusCodes.Status409Conflict, "Konflikt", exception.Message),
-            _ => (StatusCodes.Status500InternalServerError, "Unerwarteter Fehler",
-                "Die Anfrage konnte nicht verarbeitet werden.")
-        };
+        var problemDetails = Describe(exception);
+        var statusCode = problemDetails.Status!.Value;
 
         if (statusCode == StatusCodes.Status500InternalServerError)
         {
@@ -32,8 +27,8 @@ internal sealed class GlobalExceptionHandler(
         }
         else
         {
-            logger.LogInformation("{Method} {Path} failed with {StatusCode}: {Detail}",
-                httpContext.Request.Method, httpContext.Request.Path, statusCode, detail);
+            logger.LogInformation("{Method} {Path} failed with {StatusCode}: {Message}",
+                httpContext.Request.Method, httpContext.Request.Path, statusCode, exception.Message);
         }
 
         httpContext.Response.StatusCode = statusCode;
@@ -42,12 +37,42 @@ internal sealed class GlobalExceptionHandler(
         {
             HttpContext = httpContext,
             Exception = exception,
-            ProblemDetails = new ProblemDetails
-            {
-                Status = statusCode,
-                Title = title,
-                Detail = detail
-            }
+            ProblemDetails = problemDetails
         });
     }
+
+    private static ProblemDetails Describe(Exception exception) => exception switch
+    {
+        ValidationException validation => new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = ValidationProblemFactory.Title,
+            // Same key/messages shape as a ValidationProblemDetails, so the UI maps it the same way.
+            Extensions =
+            {
+                ["errors"] = new Dictionary<string, string[]>
+                {
+                    [ValidationProblemFactory.ToCamelCase(validation.PropertyName)] = [validation.Message]
+                }
+            }
+        },
+        NotFoundException => new ProblemDetails
+        {
+            Status = StatusCodes.Status404NotFound,
+            Title = "Nicht gefunden",
+            Detail = exception.Message
+        },
+        ConflictException => new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = "Konflikt",
+            Detail = exception.Message
+        },
+        _ => new ProblemDetails
+        {
+            Status = StatusCodes.Status500InternalServerError,
+            Title = "Unerwarteter Fehler",
+            Detail = "Die Anfrage konnte nicht verarbeitet werden."
+        }
+    };
 }
