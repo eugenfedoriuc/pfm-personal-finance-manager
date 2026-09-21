@@ -1,0 +1,16 @@
+.form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 320px;
+  padding-top: 4px;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+mat-radio-group {
+  display: flex;
+  gap: 16px;
+}
