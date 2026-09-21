@@ -1,0 +1,95 @@
+<div class="dashboard">
+  <app-month-switcher />
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (loadError()) {
+    <mat-card appearance="outlined" class="state-card">
+      <p>Die Übersicht konnte nicht geladen werden.</p>
+      <button mat-button type="button" (click)="reload()">Erneut versuchen</button>
+    </mat-card>
+  } @else if (summary(); as summary) {
+    <div class="kpi-row">
+      <mat-card appearance="outlined" class="kpi-card">
+        <span class="kpi-card__label">Einnahmen</span>
+        <app-money class="kpi-card__value" [amount]="summary.totalIncome" />
+      </mat-card>
+      <mat-card appearance="outlined" class="kpi-card">
+        <span class="kpi-card__label">Ausgaben</span>
+        <app-money class="kpi-card__value" [amount]="summary.totalExpenses" />
+      </mat-card>
+      <mat-card appearance="outlined" class="kpi-card">
+        <span class="kpi-card__label">Saldo</span>
+        <app-money class="kpi-card__value" [amount]="summary.balance" />
+      </mat-card>
+    </div>
+
+    <p class="summary-sentence">
+      Du hast <app-money [amount]="summary.totalIncome" /> verdient,
+      <app-money [amount]="summary.totalExpenses" /> ausgegeben.
+      @if (summary.topExpenseCategory; as top) {
+        Größte Kategorie: {{ top.name }} (<app-money [amount]="top.amount" />).
+      }
+    </p>
+
+    <mat-card appearance="outlined" class="chart-card">
+      <div class="chart-card__canvas">
+        <canvas baseChart [type]="'line'" [data]="chartData()" [options]="chartOptions"></canvas>
+      </div>
+    </mat-card>
+
+    @if (summary.expenseBreakdown.length === 0) {
+      <mat-card appearance="outlined" class="state-card">
+        <p>In diesem Monat gibt es noch keine Ausgaben.</p>
+      </mat-card>
+    } @else {
+      <mat-card appearance="outlined" class="expense-list">
+        @for (item of summary.expenseBreakdown; track item.categoryId) {
+          <div class="expense-row" [class.expense-row--top]="isTopCategory(item.categoryId)">
+            <a
+              class="expense-row__link"
+              [routerLink]="['/dashboard/categories', item.categoryId]"
+              queryParamsHandling="preserve"
+            >
+              <span
+                class="expense-row__icon"
+                [style.background-color]="item.color + '26'"
+                [style.color]="item.color"
+              >
+                <mat-icon fontSet="material-symbols-outlined">{{ item.icon }}</mat-icon>
+              </span>
+
+              <span class="expense-row__main">
+                <span class="expense-row__name">{{ item.name }}</span>
+                <span class="expense-row__meta">
+                  {{ item.transactionCount }}
+                  {{ item.transactionCount === 1 ? 'Transaktion' : 'Transaktionen' }}
+                </span>
+              </span>
+
+              <span class="expense-row__amounts">
+                <app-money [amount]="item.amount" />
+                <span class="expense-row__percentage">{{ item.percentage }} %</span>
+              </span>
+            </a>
+
+            @if (budgetByCategory().get(item.categoryId); as comparison) {
+              @if (comparison.limit === null) {
+                <button mat-button type="button" (click)="openBudgetDialog(item)">Budget erstellen</button>
+              } @else {
+                <app-budget-status
+                  [limit]="comparison.limit"
+                  [spent]="comparison.spent"
+                  [isOverBudget]="comparison.isOverBudget"
+                  [overBy]="comparison.overBy"
+                />
+              }
+            }
+          </div>
+        }
+      </mat-card>
+    }
+  }
+</div>

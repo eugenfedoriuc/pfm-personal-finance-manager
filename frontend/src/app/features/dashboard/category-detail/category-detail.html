@@ -1,0 +1,68 @@
+<div class="category-detail">
+  <header class="category-detail__header">
+    <a mat-icon-button routerLink="/dashboard" queryParamsHandling="preserve" aria-label="Zurück zur Übersicht">
+      <mat-icon>arrow_back</mat-icon>
+    </a>
+
+    @if (category(); as category) {
+      <span
+        class="category-detail__icon"
+        [style.background-color]="category.color + '26'"
+        [style.color]="category.color"
+      >
+        <mat-icon fontSet="material-symbols-outlined">{{ category.icon }}</mat-icon>
+      </span>
+      <h1>{{ category.name }}</h1>
+    }
+  </header>
+
+  <app-month-switcher />
+
+  @if (breakdown(); as breakdown) {
+    <mat-card appearance="outlined" class="total-card">
+      <span class="total-card__label">Gesamt in diesem Monat</span>
+      <app-money class="total-card__value" [amount]="breakdown.amount" />
+    </mat-card>
+  }
+
+  @if (category()?.type === 'Expense') {
+    @if (budgetComparison(); as comparison) {
+      @if (comparison.limit === null) {
+        <button mat-flat-button type="button" (click)="openBudgetDialog()">Budget erstellen</button>
+      } @else {
+        <mat-card appearance="outlined" class="budget-card">
+          <app-budget-status
+            [limit]="comparison.limit"
+            [spent]="comparison.spent"
+            [isOverBudget]="comparison.isOverBudget"
+            [overBy]="comparison.overBy"
+          />
+        </mat-card>
+      }
+    } @else {
+      <button mat-flat-button type="button" (click)="openBudgetDialog()">Budget erstellen</button>
+    }
+  }
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  }
+
+  @if (loadError()) {
+    <mat-card appearance="outlined" class="state-card">
+      <p>Transaktionen konnten nicht geladen werden.</p>
+      <button mat-button type="button" (click)="reload()">Erneut versuchen</button>
+    </mat-card>
+  } @else if (isEmpty()) {
+    <mat-card appearance="outlined" class="state-card">
+      <p>Es gibt keine Transaktionen in diesem Monat.</p>
+    </mat-card>
+  } @else {
+    <app-transaction-table
+      [transactions]="transactions()"
+      [showCategory]="false"
+      (edit)="openEditDialog($event)"
+      (delete)="openDeleteDialog($event)"
+    />
+  }
+</div>
