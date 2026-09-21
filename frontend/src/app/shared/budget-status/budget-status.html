@@ -1,0 +1,11 @@
+@if (limit() === null) {
+  <span class="budget-status__hint">Noch kein Budget gesetzt</span>
+} @else {
+  <mat-progress-bar mode="determinate" [value]="progress()" [color]="isOverBudget() ? 'warn' : 'primary'" />
+
+  @if (isOverBudget()) {
+    <span class="budget-status__over">Überzogen um <app-money [amount]="overBy() ?? 0" /></span>
+  } @else {
+    <span class="budget-status__remaining">Verbleibend: <app-money [amount]="remaining() ?? 0" /></span>
+  }
+}

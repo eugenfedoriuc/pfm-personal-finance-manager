@@ -1,0 +1,20 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.budget-status__hint {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+}
+
+.budget-status__over {
+  color: var(--mat-sys-error);
+  font-size: 0.875rem;
+}
+
+.budget-status__remaining {
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.875rem;
+}
