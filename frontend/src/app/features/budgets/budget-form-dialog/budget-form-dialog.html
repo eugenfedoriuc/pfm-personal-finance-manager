@@ -1,0 +1,34 @@
+<h2 mat-dialog-title>Budget für {{ data.category.name }} erstellen</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content class="form-content">
+    <mat-form-field appearance="outline">
+      <mat-label>Limit</mat-label>
+      <input id="budget-dialog-limit" aria-label="Limit" matInput type="number" step="0.01" formControlName="limit" required />
+      <span matTextSuffix>€</span>
+      @if (form.controls.limit.hasError('required')) {
+        <mat-error>Das Limit darf nicht leer sein.</mat-error>
+      }
+      @if (form.controls.limit.hasError('notPositive')) {
+        <mat-error>Das Limit muss größer als 0 sein.</mat-error>
+      }
+      @if (form.controls.limit.hasError('tooManyDecimals')) {
+        <mat-error>Das Limit darf höchstens zwei Nachkommastellen haben.</mat-error>
+      }
+      @if (form.controls.limit.hasError('server')) {
+        <mat-error>{{ form.controls.limit.getError('server') }}</mat-error>
+      }
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>Abbrechen</button>
+    <button mat-flat-button type="submit" [disabled]="form.invalid || submitting()">
+      @if (submitting()) {
+        <mat-progress-spinner diameter="18" mode="indeterminate" />
+      } @else {
+        Speichern
+      }
+    </button>
+  </mat-dialog-actions>
+</form>

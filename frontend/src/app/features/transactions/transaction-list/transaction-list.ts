@@ -6,14 +6,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
-import { formatDateOnly } from '../../../core/dates/date-only';
 import { MonthStateService } from '../../../core/state/month-state.service';
 import { Transaction, TransactionQuery } from '../../../core/models/transaction';
 import { TransactionType } from '../../../core/models/transaction-type';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
-import { Money } from '../../../shared/money/money';
 import { MonthSwitcher } from '../../../shared/month-switcher/month-switcher';
+import { TransactionTable } from '../../../shared/transaction-table/transaction-table';
 import { CategoryStore } from '../../categories/category-store';
 import {
   TransactionFormDialog,
@@ -32,9 +30,8 @@ const TYPE_LABELS: Record<TransactionType, string> = { Income: 'Einnahme', Expen
     MatIconModule,
     MatProgressBarModule,
     MatSelectModule,
-    MatTableModule,
-    Money,
     MonthSwitcher,
+    TransactionTable,
   ],
   templateUrl: './transaction-list.html',
   styleUrl: './transaction-list.scss',
@@ -47,7 +44,6 @@ export class TransactionList implements OnInit {
   private readonly dialog = inject(MatDialog);
 
   protected readonly typeLabels = TYPE_LABELS;
-  protected readonly displayedColumns = ['date', 'category', 'description', 'amount', 'actions'] as const;
 
   protected readonly loading = this.store.loading;
   protected readonly loadError = this.store.loadError;
@@ -91,12 +87,6 @@ export class TransactionList implements OnInit {
   protected reload(): void {
     this.store.load(this.currentQuery());
   }
-
-  protected signedAmount(transaction: Transaction): number {
-    return transaction.type === 'Expense' ? -transaction.amount : transaction.amount;
-  }
-
-  protected readonly formatDate = formatDateOnly;
 
   protected openCreateDialog(): void {
     this.openFormDialog({ mode: 'create' });

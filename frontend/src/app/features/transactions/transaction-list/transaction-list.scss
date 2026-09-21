@@ -24,32 +24,6 @@
   }
 }
 
-table {
-  width: 100%;
-}
-
-.category-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
-  border-radius: 12px;
-
-  mat-icon {
-    font-size: 18px;
-    width: 18px;
-    height: 18px;
-  }
-}
-
-.amount--income {
-  color: #2e7d32;
-}
-
-.amount--expense {
-  color: #c62828;
-}
-
 .state-card {
   padding: 24px;
   text-align: center;
