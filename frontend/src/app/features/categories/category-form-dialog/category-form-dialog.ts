@@ -1,4 +1,3 @@
-import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,8 +8,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
+import { applyServerErrors } from '../../../core/forms/apply-server-errors';
 import { Category } from '../../../core/models/category';
-import { ProblemDetails } from '../../../core/models/problem-details';
 import { TransactionType } from '../../../core/models/transaction-type';
 import { CATEGORY_COLORS, CATEGORY_ICONS } from '../category-options';
 import { CategoryStore } from '../category-store';
@@ -83,27 +82,8 @@ export class CategoryFormDialog {
       next: () => this.dialogRef.close(true),
       error: (error: unknown) => {
         this.submitting.set(false);
-        this.applyServerErrors(error);
+        applyServerErrors(this.form, error, 'name');
       },
     });
-  }
-
-  private applyServerErrors(error: unknown): void {
-    if (!(error instanceof HttpErrorResponse)) {
-      return;
-    }
-
-    const problem = error.error as ProblemDetails | null;
-
-    if (error.status === 400 && problem?.errors) {
-      for (const [field, messages] of Object.entries(problem.errors)) {
-        this.form.get(field)?.setErrors({ server: messages[0] });
-      }
-      return;
-    }
-
-    if (error.status === 409) {
-      this.form.controls.name.setErrors({ server: problem?.detail ?? 'Dieser Name wird bereits verwendet.' });
-    }
   }
 }

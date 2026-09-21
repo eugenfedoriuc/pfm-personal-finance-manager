@@ -17,8 +17,15 @@ export class CategoryStore {
   readonly loading = this._loading.asReadonly();
   readonly loadError = this._loadError.asReadonly();
   readonly isEmpty = computed(() => !this._loading() && !this._loadError() && this._categories().length === 0);
+  readonly incomeCategories = computed(() => this._categories().filter((category) => category.type === 'Income'));
+  readonly expenseCategories = computed(() => this._categories().filter((category) => category.type === 'Expense'));
 
+  /** Safe to call from every feature that needs the category list: a second call is a no-op. */
   load(): void {
+    if (this._categories().length > 0 || this._loading()) {
+      return;
+    }
+
     this._loading.set(true);
     this._loadError.set(false);
 

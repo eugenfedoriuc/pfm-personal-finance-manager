@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
@@ -24,13 +24,8 @@ export class CategoryList implements OnInit {
   protected readonly loading = this.store.loading;
   protected readonly loadError = this.store.loadError;
   protected readonly isEmpty = this.store.isEmpty;
-
-  protected readonly incomeCategories = computed(() =>
-    this.store.categories().filter((category) => category.type === 'Income'),
-  );
-  protected readonly expenseCategories = computed(() =>
-    this.store.categories().filter((category) => category.type === 'Expense'),
-  );
+  protected readonly incomeCategories = this.store.incomeCategories;
+  protected readonly expenseCategories = this.store.expenseCategories;
 
   ngOnInit(): void {
     this.store.load();
