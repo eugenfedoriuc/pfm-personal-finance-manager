@@ -403,6 +403,43 @@ already-known `spent` and the new limit, instead of calling `GET /api/summaries`
 (`spent > limit`, `max(0, spent - limit)`) are cheap and safe to repeat on the client for instant
 feedback. A full reload would add a visible delay for no additional correctness.
 
+## 0048 — Compose publishes only the web container
+
+**Decision.** `docker-compose.yml` publishes Nginx on host port 80. MongoDB and the API stay on the
+internal Compose network; Nginx proxies `/api` and `/health` to the API service.
+
+**Why.** The browser needs one origin, which removes CORS and port configuration from the production
+workflow. MongoDB should never be reachable from the host, and the API does not need a public port
+when the web container is its only client.
+
+## 0049 — Compose readiness is healthcheck-driven
+
+**Decision.** MongoDB has a `mongosh` ping healthcheck, the API has a curl healthcheck on `/health`,
+and `depends_on` waits for the corresponding service to become healthy before starting the next one.
+
+**Why.** Container start order is not service readiness. The API's hosted Mongo initializer creates
+indexes and seeds categories at startup, so the API must wait for a live MongoDB; Nginx must wait for
+an API that has completed that initialization.
+
+## 0050 — MongoDB image is pinned to 8.2
+
+**Decision.** The Compose database uses `mongo:8.2` rather than a floating `latest` tag or MongoDB
+8.0.
+
+**Why.** This is the version verified on the development machine. MongoDB 8.0 exits on its current
+Docker kernel because of SERVER-121912; 8.2 starts successfully. Pinning also prevents an unrelated
+future image update from changing the take-home assignment's runtime.
+
+## 0051 — Production images are multi-stage and non-development
+
+**Decision.** The API Dockerfile publishes a framework-dependent Release build into the ASP.NET
+runtime image. The web Dockerfile runs `npm ci` and `ng build` in a Node builder, then copies only
+the browser output into Nginx.
+
+**Why.** Runtime images should not contain SDKs, source files, npm or node_modules. This keeps the
+deployment images smaller and makes the boundary between build-time and run-time dependencies easy
+to review.
+
 ## 0043 — The dashboard uses the existing monthly summary contract
 
 **Decision.** `SummaryStore` loads `GET /api/summaries/{year}/{month}` and the dashboard derives its
