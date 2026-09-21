@@ -1,12 +1,20 @@
 import { Routes } from '@angular/router';
 
-// Dashboard, transactions and budgets are added in later phases; categories is the only feature
-// built so far, so it is also the default route.
+// Dashboard is added in Phase 6; categories, transactions and budgets are already built, so the
+// default route points at transactions.
 export const routes: Routes = [
-  { path: '', redirectTo: 'categories', pathMatch: 'full' },
+  { path: '', redirectTo: 'transactions', pathMatch: 'full' },
   {
     path: 'categories',
     loadChildren: () => import('./features/categories/categories.routes').then((m) => m.CATEGORIES_ROUTES),
   },
-  { path: '**', redirectTo: 'categories' },
+  {
+    path: 'transactions',
+    loadChildren: () => import('./features/transactions/transactions.routes').then((m) => m.TRANSACTIONS_ROUTES),
+  },
+  {
+    path: 'budgets',
+    loadChildren: () => import('./features/budgets/budgets.routes').then((m) => m.BUDGETS_ROUTES),
+  },
+  { path: '**', redirectTo: 'transactions' },
 ];
