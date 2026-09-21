@@ -403,3 +403,49 @@ already-known `spent` and the new limit, instead of calling `GET /api/summaries`
 (`spent > limit`, `max(0, spent - limit)`) are cheap and safe to repeat on the client for instant
 feedback. A full reload would add a visible delay for no additional correctness.
 
+## 0043 — The dashboard uses the existing monthly summary contract
+
+**Decision.** `SummaryStore` loads `GET /api/summaries/{year}/{month}` and the dashboard derives its
+KPI cards, sentence, category list, budget status and chart from that single response. Category
+detail reuses the same summary plus `GET /api/transactions?categoryId=&year=&month=`.
+
+**Why.** The backend already calculates all of these values in one consistent place. Adding
+dashboard-specific endpoints would duplicate aggregation logic and make the frontend contract wider
+without adding information.
+
+## 0044 — Chart.js is lazy-loaded with the dashboard route
+
+**Decision.** `provideCharts(withDefaultRegisterables())` is registered on the dashboard route rather
+than in the root application config.
+
+**Why.** Chart.js is only needed by the dashboard. Route-scoped registration keeps it out of the
+initial bundle: the production build's initial chunk stays around 524 kB while the chart code moves
+to a lazy chunk.
+
+## 0045 — The chart shows the server's cumulative series, cut at today in the browser
+
+**Decision.** The API always returns one daily point for the whole month. The dashboard filters the
+current month's points through today's local `yyyy-MM-dd`, leaves past/future months intact, and
+marks only the last visible point.
+
+**Why.** The server's date-only data remains deterministic and timezone-free, while the browser is
+the right place to apply the user's local notion of "today". This also avoids inventing future zero
+expense points on the current month's chart.
+
+## 0046 — Category detail reuses the transaction table and summary, with no new endpoint
+
+**Decision.** Category detail filters the existing transaction API by `categoryId` and renders the
+shared `TransactionTable` with its category column hidden. Its total and budget status come from the
+shared monthly summary.
+
+**Why.** The brief explicitly says no category-detail endpoint is needed. Sharing the table keeps
+edit/delete behavior and date-only formatting identical between the full list and the drill-down.
+
+## 0047 — The dashboard is the application landing page
+
+**Decision.** The empty route now redirects to `/dashboard`, and the toolbar includes Übersicht,
+Transaktionen, Kategorien and Budgets.
+
+**Why.** The monthly overview is the primary workflow and the first screen should show the product's
+main value immediately. All four built workflows remain one click away.
+
