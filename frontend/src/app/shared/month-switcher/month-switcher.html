@@ -7,7 +7,8 @@
     {{ label() }}
   </button>
 
-  <input class="visually-hidden" [matDatepicker]="picker" [value]="pickerDate()" tabindex="-1" aria-hidden="true" />
+  <label class="visually-hidden" for="month-picker">Monat auswählen</label>
+  <input id="month-picker" class="visually-hidden" [matDatepicker]="picker" [value]="pickerDate()" tabindex="-1" aria-hidden="true" />
   <mat-datepicker #picker startView="year" (monthSelected)="onMonthSelected($event, picker)"></mat-datepicker>
 
   <button mat-icon-button type="button" (click)="monthState.next()" aria-label="Nächster Monat">

@@ -4,7 +4,7 @@
   <mat-dialog-content class="form-content">
     <mat-form-field appearance="outline">
       <mat-label>Name</mat-label>
-      <input matInput formControlName="name" maxlength="50" required />
+      <input id="category-name" aria-label="Name" matInput formControlName="name" maxlength="50" required />
       @if (form.controls.name.hasError('required')) {
         <mat-error>Der Name darf nicht leer sein.</mat-error>
       }
@@ -34,15 +34,14 @@
       </mat-select>
     </mat-form-field>
 
-    <div class="color-picker" role="radiogroup" aria-label="Farbe">
+    <div class="color-picker" aria-label="Farbe">
       @for (color of colors; track color) {
         <button
           type="button"
           class="color-swatch"
           [style.background-color]="color"
           [class.color-swatch--selected]="form.controls.color.value === color"
-          role="radio"
-          [attr.aria-checked]="form.controls.color.value === color"
+          [attr.aria-pressed]="form.controls.color.value === color"
           [attr.aria-label]="color"
           (click)="selectColor(color)"
         ></button>

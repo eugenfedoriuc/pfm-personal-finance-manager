@@ -10,7 +10,7 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Betrag</mat-label>
-      <input matInput type="number" step="0.01" formControlName="amount" required />
+      <input id="transaction-amount" aria-label="Betrag" matInput type="number" step="0.01" formControlName="amount" required />
       <span matTextSuffix>€</span>
       @if (form.controls.amount.hasError('required')) {
         <mat-error>Der Betrag darf nicht leer sein.</mat-error>
@@ -28,7 +28,7 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Datum</mat-label>
-      <input matInput [matDatepicker]="datePicker" formControlName="date" required />
+      <input id="transaction-date" aria-label="Datum" matInput [matDatepicker]="datePicker" formControlName="date" required />
       <mat-datepicker-toggle matSuffix [for]="datePicker" />
       <mat-datepicker #datePicker />
     </mat-form-field>
@@ -53,7 +53,7 @@
 
     <mat-form-field appearance="outline">
       <mat-label>Notiz</mat-label>
-      <textarea matInput formControlName="description" [maxlength]="maxDescriptionLength" rows="2"></textarea>
+      <textarea id="transaction-description" aria-label="Notiz" matInput formControlName="description" [maxlength]="maxDescriptionLength" rows="2"></textarea>
       @if (form.controls.description.hasError('maxlength')) {
         <mat-error>Die Notiz darf höchstens {{ maxDescriptionLength }} Zeichen lang sein.</mat-error>
       }
