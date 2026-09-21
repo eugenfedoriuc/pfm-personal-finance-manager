@@ -346,3 +346,60 @@ them.
 stub page would be exactly that; better to grow the route table alongside the features and keep the
 default redirect honest about what currently exists.
 
+## 0037 — The default route is `/transactions` until the dashboard exists
+
+**Decision.** With transactions and budgets now built, `''` redirects to `/transactions` instead of
+`/categories`.
+
+**Why.** Transactions are the primary, most frequently used screen and the natural landing page;
+categories are reference data you set up once and rarely revisit. The redirect moves to `/dashboard`
+once Phase 6 builds it.
+
+## 0038 — Amount and limit validators live in `core/forms`, shared by every money field
+
+**Decision.** `positiveAmount` and `maxTwoDecimals` are standalone `ValidatorFn`s in
+`core/forms/amount-validators.ts`, used by both the transaction amount and the budget limit.
+
+**Why.** Both fields need exactly the rule the backend already enforces (`MoneyRules.Money`, see
+0017): positive, at most two decimal places. Writing it once and giving each failure its own error
+key (`notPositive`, `tooManyDecimals`) lets each form show the precise German message instead of one
+generic "invalid amount".
+
+## 0039 — One `applyServerErrors` helper for every form
+
+**Decision.** `core/forms/apply-server-errors.ts` maps a failed request onto a `FormGroup`: a 400's
+`errors` go onto the matching controls, a 409 goes onto a caller-supplied fallback control. The
+category, transaction and budget forms all call it instead of repeating the mapping.
+
+**Why.** All three forms need the identical logic; the only per-form difference is which field a
+409 (a conflict with no field of its own) should be blamed on.
+
+## 0040 — Budgets combine three read models instead of one dedicated endpoint
+
+**Decision.** The budgets screen builds its rows from `categoryStore.expenseCategories()` (every
+category that can have a budget), `GET /api/budgets` (the limits that exist) and the `budgetComparison`
+part of `GET /api/summaries/{year}/{month}` (actual spending, already computed server-side).
+
+**Why.** The backend has no endpoint that returns "every expense category with its spend, budgeted
+or not" — budgets only exist where they're set, and `budgetComparison` only lists categories with a
+budget or with spending (business rule 6). Reusing the summary's numbers, rather than re-summing
+transactions in the browser, keeps the spend calculation defined in exactly one place.
+
+## 0041 — Budgets use a real `FormArray`, one `FormGroup` per row
+
+**Decision.** Each expense category gets a `FormGroup<{ limit: FormControl<number | null> }>`; the
+group is both the row's reactive form and the single source of truth for its dirty state, held in a
+`FormArray`. A `BudgetRow` view model carries the category, spend and status alongside the group.
+
+**Why.** "Save enabled only when the row is dirty" is exactly what `FormGroup.dirty` already tracks;
+building a parallel dirty flag by hand would just duplicate what Reactive Forms gives for free.
+
+## 0042 — A budget row updates its status locally after saving, without refetching the summary
+
+**Decision.** After `PUT /api/budgets` succeeds, `isOverBudget`/`overBy` are recomputed from the
+already-known `spent` and the new limit, instead of calling `GET /api/summaries` again.
+
+**Why.** Saving a limit does not change what was spent, so the two business-rule formulas
+(`spent > limit`, `max(0, spent - limit)`) are cheap and safe to repeat on the client for instant
+feedback. A full reload would add a visible delay for no additional correctness.
+
