@@ -486,3 +486,91 @@ Transaktionen, Kategorien and Budgets.
 **Why.** The monthly overview is the primary workflow and the first screen should show the product's
 main value immediately. All four built workflows remain one click away.
 
+## 0052 — Brand colors are system-token overrides, not a generated M3 palette
+
+**Decision.** `styles.scss` sets the app's black/white/orange theme by overriding roughly forty
+`--mat-sys-*` custom properties directly (as `light-dark()` pairs), instead of building a full
+Material 3 tonal palette from the brand's seed color. `mat.theme()` still runs first with
+`mat.$orange-palette`/`mat.$rose-palette` as a structural base, so anything left un-overridden stays
+in the same warm hue family rather than falling back to Material's default violet.
+
+**Why.** The installed Angular Material version has no Sass API to derive a full tonal scale (every
+tone from 0 to 100, plus neutral/error sub-palettes) from an arbitrary hex value — that algorithm
+only exists in Google's separate `material-color-utilities` package. Overriding the handful of
+tokens that are actually visible in the UI is precise, low-risk and needs no extra dependency.
+
+## 0053 — Shape and elevation are flattened per component token, not via `--mat-sys-corner-*`/`--mat-sys-level*`
+
+**Decision.** `styles.scss` sets around thirty-five individual `--mat-*-container-shape` tokens to a
+shared `--pfm-radius` (2px) and the matching `--mat-*-elevation-shadow`/`-elevation` tokens to `none`
+or a subtle custom shadow, listing every affected component by name.
+
+**Why.** Material bakes its corner radius and elevation defaults into each component's own token at
+Sass **build time**, computed from the system-level `--mat-sys-corner-*`/`--mat-sys-level*` values —
+those system values are emitted as CSS variables for the app's own use, but no built-in component
+actually reads them back via `var()` at runtime. Overriding the system-level tokens alone was
+verified to have no visible effect; only the final per-component token (e.g.
+`--mat-button-filled-container-shape`) changes what renders.
+
+## 0054 — Loading feedback has two tiers: a branded first-load indicator and a plain progress bar
+
+**Decision.** Every list/detail page computes `showInitialLoader = loading() && no data yet`. On
+first load it shows the shared `LoadingIndicator` (a branded spinner) full-screen; once data exists,
+a later `loading()` (e.g. switching month) only shows a thin `mat-progress-bar` above the untouched
+content.
+
+**Why.** Replacing already-visible content with a full loader on every background refresh would be
+more disruptive than helpful — the data the user was looking at would disappear and reappear. A full
+loader earns its place once, for the very first paint.
+
+## 0055 — Loading state has a minimum visible duration
+
+**Decision.** `core/utils/min-duration-loading.ts` wraps a store's loading flag so that once it is
+set to `true` it stays visible for at least ~900ms, even if the request already resolved.
+
+**Why.** Local/fast responses would otherwise flip the loading indicator on and off within a few
+milliseconds, which reads as a UI glitch rather than speed. The minimum only ever delays *hiding* the
+indicator — it never delays showing it, so a genuinely slow request is unaffected.
+
+## 0056 — Notifications only confirm success; failures already have a global toast
+
+**Decision.** `NotificationService` exposes a single `success()` method, called after every
+create/update/delete mutation across transactions, categories and budgets.
+
+**Why.** The existing `errorInterceptor` (0034) already shows a toast for every failed request
+except a 400 with field-level errors. Adding a second, component-level error toast on top of that
+would show the same failure twice.
+
+## 0057 — Chart colors are computed in TypeScript, not read from CSS custom properties
+
+**Decision.** The dashboard's line chart gets its line/fill/grid/tick colors from a `chartPalette`
+computed signal keyed off `ThemeService.mode()`, with literal hex/rgba values that mirror the CSS
+theme, rather than from `var(--mat-sys-*)`.
+
+**Why.** Chart.js reads plain color strings at draw time on a `<canvas>`; it has no way to resolve a
+CSS custom property. Without an explicit palette, the chart kept whatever default color Chart.js
+picks, which turned out to be invisible against the dark-mode background.
+
+## 0058 — The month switcher's hidden datepicker input is positioned to match its visible button
+
+**Decision.** The native `<input [matDatepicker]>` behind the "September 2026"-style label button is
+absolutely positioned (`inset: 0`, `opacity: 0`) inside a `position: relative` wrapper that also
+contains the visible button, instead of being taken out of the visual flow with the usual
+`clip: rect()` "visually hidden" technique.
+
+**Why.** The CDK overlay that renders the calendar anchors to whichever element carries
+`[matDatepicker]`. A `clip`-hidden input has an unpredictable bounding rect (browsers fall back to
+its static position relative to the nearest positioned ancestor), so the calendar could open far
+from the button the user actually clicked. Stretching the input exactly over the button gives the
+overlay the correct anchor rect.
+
+## 0059 — Wide tables scroll within themselves, and drop optional columns before that
+
+**Decision.** `TransactionTable` wraps its `<table>` in a `.transaction-table__scroll { overflow-x:
+auto }` container. Below 599px, the optional "Notiz" column and the category chip's text label are
+hidden with a media query on the CDK-generated `.mat-column-*` classes, keeping only the icon.
+
+**Why.** Without a wrapper, an overflowing table pushes the whole page into horizontal scroll, which
+is confusing on its own and doubly so once scrollbars are hidden globally. Dropping the least
+essential column first means most phones never need to scroll the table at all.
+
