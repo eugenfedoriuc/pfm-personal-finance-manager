@@ -9,25 +9,151 @@
 @import '@fontsource/roboto/300.css';
 @import '@fontsource/roboto/400.css';
 @import '@fontsource/roboto/500.css';
+@import '@fontsource/roboto/700.css';
+@import '@fontsource/roboto/900.css';
 @import '@fontsource/material-symbols-outlined/400.css';
 
 html {
   height: 100%;
+  // Default before the theme toggle's inline style kicks in (see index.html and ThemeService).
+  color-scheme: light dark;
+
+  // Structural base (ripples, disabled/hover states, default typography scale). The orange/rose
+  // families keep anything below that isn't explicitly overridden in the same warm hue range.
   @include mat.theme(
     (
       color: (
-        primary: mat.$azure-palette,
-        tertiary: mat.$blue-palette,
+        primary: mat.$orange-palette,
+        tertiary: mat.$rose-palette,
       ),
-      typography: Roboto,
+      typography: (
+        plain-family: Roboto,
+        brand-family: Roboto,
+        bold-weight: 900,
+        medium-weight: 700,
+        regular-weight: 400,
+      ),
       density: 0,
     )
   );
+
+  // --- Brand palette --------------------------------------------------------------------
+  // A black/white/orange corporate palette, layered on top of the structural theme above by
+  // overriding the individual system tokens with exact brand hex values (Sass has no API in this
+  // package to generate a full M3 tonal palette from an arbitrary seed color).
+  --mat-sys-primary: light-dark(#d04a02, #ff8f5c);
+  --mat-sys-on-primary: light-dark(#ffffff, #4a1b00);
+  --mat-sys-primary-container: light-dark(#fde3d3, #7a3300);
+  --mat-sys-on-primary-container: light-dark(#4a1b00, #ffd9be);
+  --mat-sys-inverse-primary: light-dark(#ffb287, #d04a02);
+
+  --mat-sys-secondary: light-dark(#7a5300, #e0b84a);
+  --mat-sys-on-secondary: light-dark(#ffffff, #3d2900);
+  --mat-sys-secondary-container: light-dark(#ffe8b8, #5a4000);
+  --mat-sys-on-secondary-container: light-dark(#402d00, #ffe8b8);
+
+  --mat-sys-tertiary: light-dark(#93144f, #ff9fc7);
+  --mat-sys-on-tertiary: light-dark(#ffffff, #5c0030);
+  --mat-sys-tertiary-container: light-dark(#ffd9e6, #7a0040);
+  --mat-sys-on-tertiary-container: light-dark(#3a0020, #ffd9e6);
+
+  --mat-sys-background: light-dark(#ffffff, #141210);
+  --mat-sys-on-background: light-dark(#161311, #f2ece6);
+  --mat-sys-surface: light-dark(#ffffff, #141210);
+  --mat-sys-on-surface: light-dark(#161311, #f2ece6);
+  --mat-sys-surface-variant: light-dark(#f1ece7, #4d4640);
+  --mat-sys-on-surface-variant: light-dark(#4d4640, #d3c9bf);
+  --mat-sys-surface-container-lowest: light-dark(#ffffff, #0c0a09);
+  --mat-sys-surface-container-low: light-dark(#faf7f4, #1c1815);
+  --mat-sys-surface-container: light-dark(#f4efea, #201c19);
+  --mat-sys-surface-container-high: light-dark(#eee8e2, #2a2521);
+  --mat-sys-surface-container-highest: light-dark(#e8e1da, #35302b);
+  --mat-sys-outline: light-dark(#b5aca4, #8f857b);
+  --mat-sys-outline-variant: light-dark(#dad2c9, #4d4640);
+  --mat-sys-inverse-surface: light-dark(#2b2521, #ece5de);
+  --mat-sys-inverse-on-surface: light-dark(#f7f1ec, #201c19);
+  --mat-sys-scrim: #000000;
+
+  // Material has no semantic "income/positive" color, so the dashboard defines its own.
+  --pfm-income-color: light-dark(#2e7d32, #81c995);
+  // Reserved for sparing decorative use only (e.g. one accent block per screen), never for text.
+  --pfm-accent-yellow: light-dark(#f2a900, #ffc94d);
+  // Shared minimal radius for the app's own components (Material's built-in shape tokens are
+  // flattened separately below, since they're baked in at Sass-compile time, not read at runtime).
+  --pfm-radius: 2px;
+
+  // --- Sharp, editorial shape language ----------------------------------------------------
+  // Angular Material bakes its default corner radii in at Sass build time, so the system-level
+  // `--mat-sys-corner-*` tokens can't be overridden at runtime; every component's own shape token
+  // has to be targeted directly instead. Avatars, badges, sliders and the toggle switch are left
+  // alone since a square avatar or square toggle handle reads as broken, not "on-brand".
+  --mat-autocomplete-container-shape: var(--pfm-radius);
+  --mat-bottom-sheet-container-shape: var(--pfm-radius);
+  --mat-button-filled-container-shape: var(--pfm-radius);
+  --mat-button-outlined-container-shape: var(--pfm-radius);
+  --mat-button-protected-container-shape: var(--pfm-radius);
+  --mat-button-text-container-shape: var(--pfm-radius);
+  --mat-button-tonal-container-shape: var(--pfm-radius);
+  --mat-card-elevated-container-shape: var(--pfm-radius);
+  --mat-card-filled-container-shape: var(--pfm-radius);
+  --mat-card-outlined-container-shape: var(--pfm-radius);
+  --mat-chip-container-shape: var(--pfm-radius);
+  --mat-datepicker-calendar-container-shape: var(--pfm-radius);
+  --mat-datepicker-calendar-container-touch-shape: var(--pfm-radius);
+  --mat-dialog-container-shape: var(--pfm-radius);
+  --mat-expansion-container-shape: var(--pfm-radius);
+  --mat-fab-container-shape: var(--pfm-radius);
+  --mat-fab-extended-container-shape: var(--pfm-radius);
+  --mat-fab-small-container-shape: var(--pfm-radius);
+  --mat-form-field-filled-container-shape: var(--pfm-radius);
+  --mat-form-field-outlined-container-shape: var(--pfm-radius);
+  --mat-icon-button-container-shape: var(--pfm-radius);
+  --mat-list-active-indicator-shape: var(--pfm-radius);
+  --mat-list-list-item-container-shape: var(--pfm-radius);
+  --mat-menu-container-shape: var(--pfm-radius);
+  --mat-progress-bar-track-shape: var(--pfm-radius);
+  --mat-sidenav-container-shape: 0;
+  --mat-snack-bar-container-shape: var(--pfm-radius);
+  --mat-tab-active-indicator-shape: var(--pfm-radius);
+  --mat-timepicker-container-shape: var(--pfm-radius);
+  --mat-tooltip-container-shape: var(--pfm-radius);
+
+  // --- Flat surfaces, subtle borders instead of drop shadows ------------------------------
+  --mat-app-elevation-shadow: none;
+  --mat-autocomplete-container-elevation-shadow: none;
+  --mat-button-protected-container-elevation-shadow: none;
+  --mat-button-protected-disabled-container-elevation-shadow: none;
+  --mat-button-protected-focus-container-elevation-shadow: none;
+  --mat-button-protected-hover-container-elevation-shadow: none;
+  --mat-button-protected-pressed-container-elevation-shadow: none;
+  --mat-card-elevated-container-elevation: none;
+  --mat-card-filled-container-elevation: none;
+  --mat-card-outlined-container-elevation: none;
+  --mat-datepicker-calendar-container-elevation-shadow: none;
+  --mat-datepicker-calendar-container-touch-elevation-shadow: none;
+  --mat-dialog-container-elevation-shadow: 0 1px 12px 0 rgba(0, 0, 0, 0.18);
+  --mat-expansion-container-elevation-shadow: none;
+  --mat-fab-container-elevation-shadow: none;
+  --mat-fab-extended-container-elevation-shadow: none;
+  --mat-fab-extended-focus-container-elevation-shadow: none;
+  --mat-fab-extended-hover-container-elevation-shadow: none;
+  --mat-fab-extended-pressed-container-elevation-shadow: none;
+  --mat-fab-focus-container-elevation-shadow: none;
+  --mat-fab-hover-container-elevation-shadow: none;
+  --mat-fab-pressed-container-elevation-shadow: none;
+  --mat-fab-small-container-elevation-shadow: none;
+  --mat-fab-small-focus-container-elevation-shadow: none;
+  --mat-fab-small-hover-container-elevation-shadow: none;
+  --mat-fab-small-pressed-container-elevation-shadow: none;
+  --mat-menu-container-elevation-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.16);
+  --mat-select-container-elevation-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.16);
+  --mat-sidenav-container-elevation-shadow: none;
+  --mat-timepicker-container-elevation-shadow: none;
 }
 
 body {
-  // Follows the system's light/dark preference (design direction: light and dark theme).
-  color-scheme: light dark;
+  // Inherits `color-scheme` from <html>, which the theme toggle sets explicitly (see ThemeService).
+  color-scheme: inherit;
 
   // Set a default background, font and text colors for the application using
   // Angular Material's system-level CSS variables. Learn more about these
@@ -35,10 +161,27 @@ body {
   background-color: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font: var(--mat-sys-body-medium);
+  -webkit-font-smoothing: antialiased;
 
   // Reset the user agent margin.
   margin: 0;
   height: 100%;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.01em;
+}
+
+// Scrollbars are hidden everywhere; scrolling itself still works via overflow auto/scroll.
+* {
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // legacy Edge
+}
+
+*::-webkit-scrollbar {
+  display: none; // Chrome, Safari, Chromium-based Edge
 }
 
 // Renders a Material Symbol by its ligature name, e.g. <span class="material-symbols-outlined">home</span>.
@@ -59,8 +202,49 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-// Rounded cards throughout the app (design direction: ~24px radius).
-.mat-mdc-card {
-  --mdc-elevated-card-container-shape: 24px;
-  --mdc-outlined-card-container-shape: 24px;
+// Subtle borders instead of shadows on outlined surfaces, and a crisp 1px hairline for dialogs
+// and menus that still need to visually separate from the page behind them.
+.mat-mdc-card.mat-mdc-card-outlined,
+.mat-mdc-menu-panel,
+.mat-mdc-autocomplete-panel,
+.mat-datepicker-content,
+.mat-mdc-select-panel {
+  border: 1px solid var(--mat-sys-outline-variant);
 }
+
+// Small bold uppercase label used above page/section titles for an editorial, report-like feel.
+.pfm-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  color: var(--mat-sys-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+// Success/error accent bar on toasts (see NotificationService and the error interceptor).
+.pfm-snackbar--success .mdc-snackbar__surface {
+  border-left: 4px solid var(--pfm-income-color);
+}
+
+.pfm-snackbar--error .mdc-snackbar__surface {
+  border-left: 4px solid var(--mat-sys-error);
+}
+
+// Crossfade duration for the light/dark toggle (see ThemeService.toggle). These pseudo-elements
+// only exist while a document.startViewTransition() capture is in flight and must stay global.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 0.001s;
+  }
+}
+

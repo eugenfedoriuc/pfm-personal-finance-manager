@@ -10,6 +10,25 @@
   text-transform: capitalize;
 }
 
+// The datepicker overlay anchors to whichever element carries `[matDatepicker]` (the hidden input
+// below), so it's stretched exactly over the visible button instead of sitting at its own,
+// unrelated position — otherwise the calendar can pop up far from where the user clicked.
+.app-month-switcher__anchor {
+  position: relative;
+  display: inline-block;
+}
+
+.app-month-switcher__hidden-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

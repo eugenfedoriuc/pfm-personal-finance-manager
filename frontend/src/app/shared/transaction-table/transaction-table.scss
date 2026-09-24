@@ -1,3 +1,9 @@
+// Only the table scrolls horizontally on narrow screens, never the whole page.
+.transaction-table__scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 table {
   width: 100%;
 }
@@ -7,19 +13,51 @@ table {
   align-items: center;
   gap: 6px;
   padding: 2px 10px;
-  border-radius: 12px;
+  border-radius: var(--pfm-radius);
+  max-width: 100%;
 
   mat-icon {
+    flex-shrink: 0;
     font-size: 18px;
     width: 18px;
     height: 18px;
   }
 }
 
+.category-chip__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .amount--income {
-  color: #2e7d32;
+  color: var(--pfm-income-color);
+  font-weight: 700;
 }
 
 .amount--expense {
-  color: #c62828;
+  color: var(--mat-sys-error);
+  font-weight: 700;
+}
+
+// Below phone width, drop the optional note column and collapse the category chip to just its
+// icon, so the table fits without needing to scroll sideways for the common case.
+@media (max-width: 599px) {
+  .mat-column-description {
+    display: none;
+  }
+
+  th.mat-column-category,
+  td.mat-column-category {
+    padding-right: 4px;
+  }
+
+  .category-chip__label {
+    display: none;
+  }
+
+  th.mat-column-actions,
+  td.mat-column-actions {
+    padding-left: 0;
+  }
 }

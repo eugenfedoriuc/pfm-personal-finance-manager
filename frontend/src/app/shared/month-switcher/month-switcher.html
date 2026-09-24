@@ -3,12 +3,21 @@
     <mat-icon>chevron_left</mat-icon>
   </button>
 
-  <button mat-button type="button" class="app-month-switcher__label" (click)="picker.open()">
-    {{ label() }}
-  </button>
+  <span class="app-month-switcher__anchor">
+    <button mat-button type="button" class="app-month-switcher__label" (click)="picker.open()">
+      {{ label() }}
+    </button>
 
-  <label class="visually-hidden" for="month-picker">Monat auswählen</label>
-  <input id="month-picker" class="visually-hidden" [matDatepicker]="picker" [value]="pickerDate()" tabindex="-1" aria-hidden="true" />
+    <label class="visually-hidden" for="month-picker">Monat auswählen</label>
+    <input
+      id="month-picker"
+      class="app-month-switcher__hidden-input"
+      [matDatepicker]="picker"
+      [value]="pickerDate()"
+      tabindex="-1"
+      aria-hidden="true"
+    />
+  </span>
   <mat-datepicker #picker startView="year" (monthSelected)="onMonthSelected($event, picker)"></mat-datepicker>
 
   <button mat-icon-button type="button" (click)="monthState.next()" aria-label="Nächster Monat">
