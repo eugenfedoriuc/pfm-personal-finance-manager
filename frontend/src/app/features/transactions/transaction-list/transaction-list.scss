@@ -1,17 +1,25 @@
 .transaction-list {
   max-width: 960px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 40px 24px 64px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
 .transaction-list__header {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 16px;
+
+  h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
 }
 
 .transaction-list__filters {
@@ -22,6 +30,14 @@
   mat-form-field {
     min-width: 180px;
   }
+}
+
+.transaction-list__option-icon {
+  margin-right: 8px;
+  vertical-align: middle;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
 }
 
 .state-card {

@@ -24,7 +24,7 @@ mat-form-field {
 .color-swatch {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: var(--pfm-radius);
   border: 2px solid transparent;
   cursor: pointer;
   padding: 0;

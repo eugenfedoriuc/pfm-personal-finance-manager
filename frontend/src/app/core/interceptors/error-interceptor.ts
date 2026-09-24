@@ -18,7 +18,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         const problem = error.error as ProblemDetails | null;
 
         if (!problem?.errors) {
-          snackBar.open(describe(error, problem), 'Schließen', { duration: 6000 });
+          snackBar.open(describe(error, problem), 'Schließen', { duration: 6000, panelClass: 'pfm-snackbar--error' });
         }
       }
 

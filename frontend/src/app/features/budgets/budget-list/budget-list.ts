@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -12,8 +12,11 @@ import { SummaryApiService } from '../../../core/api/summary-api.service';
 import { maxTwoDecimals, positiveAmount } from '../../../core/forms/amount-validators';
 import { applyServerErrors } from '../../../core/forms/apply-server-errors';
 import { Category } from '../../../core/models/category';
+import { NotificationService } from '../../../core/services/notification.service';
 import { MonthStateService } from '../../../core/state/month-state.service';
+import { createMinDurationLoading } from '../../../core/utils/min-duration-loading';
 import { BudgetStatus } from '../../../shared/budget-status/budget-status';
+import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
 import { Money } from '../../../shared/money/money';
 import { MonthSwitcher } from '../../../shared/month-switcher/month-switcher';
 import { CategoryStore } from '../../categories/category-store';
@@ -39,6 +42,7 @@ interface BudgetRow {
     MatInputModule,
     MatProgressBarModule,
     BudgetStatus,
+    LoadingIndicator,
     Money,
     MonthSwitcher,
   ],
@@ -51,10 +55,14 @@ export class BudgetList {
   private readonly summaryApi = inject(SummaryApiService);
   private readonly categoryStore = inject(CategoryStore);
   private readonly monthState = inject(MonthStateService);
+  private readonly notifications = inject(NotificationService);
 
-  protected readonly loading = signal(false);
+  private readonly loadingCtl = createMinDurationLoading();
+
+  protected readonly loading = this.loadingCtl.loading;
   protected readonly loadError = signal(false);
   protected readonly rows = signal<BudgetRow[]>([]);
+  protected readonly showInitialLoader = computed(() => this.loading() && this.rows().length === 0);
 
   constructor() {
     this.categoryStore.load();
@@ -90,6 +98,7 @@ export class BudgetList {
         row.overBy = Math.max(0, row.spent - limit);
         row.group.markAsPristine();
         this.rows.set([...this.rows()]);
+        this.notifications.success(`Budget f\u00fcr ${row.category.name} gespeichert.`);
       },
       error: (error: unknown) => {
         row.saving = false;
@@ -100,7 +109,7 @@ export class BudgetList {
   }
 
   private loadMonth(year: number, month: number, categories: readonly Category[]): void {
-    this.loading.set(true);
+    this.loadingCtl.start();
     this.loadError.set(false);
 
     forkJoin({
@@ -129,11 +138,11 @@ export class BudgetList {
             };
           }),
         );
-        this.loading.set(false);
+        this.loadingCtl.stop();
       },
       error: () => {
         this.loadError.set(true);
-        this.loading.set(false);
+        this.loadingCtl.stop();
       },
     });
   }

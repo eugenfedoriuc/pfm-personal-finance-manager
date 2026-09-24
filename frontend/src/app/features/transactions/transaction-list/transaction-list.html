@@ -1,6 +1,9 @@
 <div class="transaction-list">
   <header class="transaction-list__header">
-    <h1>Transaktionen</h1>
+    <div>
+      <p class="pfm-eyebrow">Bewegungen</p>
+      <h1>Transaktionen</h1>
+    </div>
     <button mat-flat-button type="button" (click)="openCreateDialog()">
       <mat-icon>add</mat-icon>
       Transaktion erfassen
@@ -27,30 +30,39 @@
       <mat-select [value]="categoryFilter()" (selectionChange)="categoryFilter.set($event.value)">
         <mat-option value="">Alle</mat-option>
         @for (category of filterCategories(); track category.id) {
-          <mat-option [value]="category.id">{{ category.name }}</mat-option>
+          <mat-option [value]="category.id">
+            <mat-icon class="transaction-list__option-icon" fontSet="material-symbols-outlined" [style.color]="category.color">
+              {{ category.icon }}
+            </mat-icon>
+            {{ category.name }}
+          </mat-option>
         }
       </mat-select>
     </mat-form-field>
   </div>
 
-  @if (loading()) {
-    <mat-progress-bar mode="indeterminate" />
-  }
-
-  @if (loadError()) {
-    <mat-card appearance="outlined" class="state-card">
-      <p>Transaktionen konnten nicht geladen werden.</p>
-      <button mat-button type="button" (click)="reload()">Erneut versuchen</button>
-    </mat-card>
-  } @else if (isEmpty()) {
-    <mat-card appearance="outlined" class="state-card">
-      <p>Es gibt keine Transaktionen in diesem Monat.</p>
-    </mat-card>
+  @if (showInitialLoader()) {
+    <app-loading-indicator label="Transaktionen werden geladen …" />
   } @else {
-    <app-transaction-table
-      [transactions]="transactions()"
-      (edit)="openEditDialog($event)"
-      (delete)="openDeleteDialog($event)"
-    />
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    @if (loadError()) {
+      <mat-card appearance="outlined" class="state-card">
+        <p>Transaktionen konnten nicht geladen werden.</p>
+        <button mat-button type="button" (click)="reload()">Erneut versuchen</button>
+      </mat-card>
+    } @else if (isEmpty()) {
+      <mat-card appearance="outlined" class="state-card">
+        <p>Es gibt keine Transaktionen in diesem Monat.</p>
+      </mat-card>
+    } @else {
+      <app-transaction-table
+        [transactions]="transactions()"
+        (edit)="openEditDialog($event)"
+        (delete)="openDeleteDialog($event)"
+      />
+    }
   }
 </div>

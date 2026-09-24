@@ -11,7 +11,7 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--pfm-radius);
   flex-shrink: 0;
 }
 

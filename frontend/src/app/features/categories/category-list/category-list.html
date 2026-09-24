@@ -1,46 +1,53 @@
 <div class="category-list">
   <header class="category-list__header">
-    <h1>Kategorien</h1>
+    <div>
+      <p class="pfm-eyebrow">Struktur</p>
+      <h1>Kategorien</h1>
+    </div>
     <button mat-flat-button type="button" (click)="openCreateDialog()">
       <mat-icon>add</mat-icon>
       Kategorie erstellen
     </button>
   </header>
 
-  @if (loading()) {
-    <mat-progress-bar mode="indeterminate" />
-  }
-
-  @if (loadError()) {
-    <mat-card appearance="outlined" class="state-card">
-      <p>Kategorien konnten nicht geladen werden.</p>
-      <button mat-button type="button" (click)="reload()">Erneut versuchen</button>
-    </mat-card>
-  } @else if (isEmpty()) {
-    <mat-card appearance="outlined" class="state-card">
-      <p>Es gibt noch keine Kategorien.</p>
-    </mat-card>
+  @if (showInitialLoader()) {
+    <app-loading-indicator label="Kategorien werden geladen …" />
   } @else {
-    <mat-card appearance="outlined">
-      <h2>Einnahmen</h2>
-      @for (category of incomeCategories(); track category.id) {
-        <app-category-row
-          [category]="category"
-          (edit)="openEditDialog(category)"
-          (delete)="openDeleteDialog(category)"
-        />
-      }
-    </mat-card>
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
 
-    <mat-card appearance="outlined">
-      <h2>Ausgaben</h2>
-      @for (category of expenseCategories(); track category.id) {
-        <app-category-row
-          [category]="category"
-          (edit)="openEditDialog(category)"
-          (delete)="openDeleteDialog(category)"
-        />
-      }
-    </mat-card>
+    @if (loadError()) {
+      <mat-card appearance="outlined" class="state-card">
+        <p>Kategorien konnten nicht geladen werden.</p>
+        <button mat-button type="button" (click)="reload()">Erneut versuchen</button>
+      </mat-card>
+    } @else if (isEmpty()) {
+      <mat-card appearance="outlined" class="state-card">
+        <p>Es gibt noch keine Kategorien.</p>
+      </mat-card>
+    } @else {
+      <mat-card appearance="outlined">
+        <h2>Einnahmen</h2>
+        @for (category of incomeCategories(); track category.id) {
+          <app-category-row
+            [category]="category"
+            (edit)="openEditDialog(category)"
+            (delete)="openDeleteDialog(category)"
+          />
+        }
+      </mat-card>
+
+      <mat-card appearance="outlined">
+        <h2>Ausgaben</h2>
+        @for (category of expenseCategories(); track category.id) {
+          <app-category-row
+            [category]="category"
+            (edit)="openEditDialog(category)"
+            (delete)="openDeleteDialog(category)"
+          />
+        }
+      </mat-card>
+    }
   }
 </div>

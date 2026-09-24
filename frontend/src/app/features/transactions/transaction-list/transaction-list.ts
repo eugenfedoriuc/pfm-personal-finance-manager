@@ -9,7 +9,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MonthStateService } from '../../../core/state/month-state.service';
 import { Transaction, TransactionQuery } from '../../../core/models/transaction';
 import { TransactionType } from '../../../core/models/transaction-type';
+import { NotificationService } from '../../../core/services/notification.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
 import { MonthSwitcher } from '../../../shared/month-switcher/month-switcher';
 import { TransactionTable } from '../../../shared/transaction-table/transaction-table';
 import { CategoryStore } from '../../categories/category-store';
@@ -30,6 +32,7 @@ const TYPE_LABELS: Record<TransactionType, string> = { Income: 'Einnahme', Expen
     MatIconModule,
     MatProgressBarModule,
     MatSelectModule,
+    LoadingIndicator,
     MonthSwitcher,
     TransactionTable,
   ],
@@ -42,6 +45,7 @@ export class TransactionList implements OnInit {
   private readonly categoryStore = inject(CategoryStore);
   private readonly monthState = inject(MonthStateService);
   private readonly dialog = inject(MatDialog);
+  private readonly notifications = inject(NotificationService);
 
   protected readonly typeLabels = TYPE_LABELS;
 
@@ -49,6 +53,7 @@ export class TransactionList implements OnInit {
   protected readonly loadError = this.store.loadError;
   protected readonly isEmpty = this.store.isEmpty;
   protected readonly transactions = this.store.transactions;
+  protected readonly showInitialLoader = computed(() => this.loading() && this.transactions().length === 0);
 
   protected readonly typeFilter = signal<TransactionType | ''>('');
   protected readonly categoryFilter = signal<string>('');
@@ -107,7 +112,13 @@ export class TransactionList implements OnInit {
       .afterClosed()
       .subscribe((confirmed) => {
         if (confirmed) {
-          this.store.delete(transaction.id).subscribe({ next: () => this.reload(), error: () => undefined });
+          this.store.delete(transaction.id).subscribe({
+            next: () => {
+              this.reload();
+              this.notifications.success('Transaktion gelöscht.');
+            },
+            error: () => undefined,
+          });
         }
       });
   }
@@ -119,6 +130,7 @@ export class TransactionList implements OnInit {
       .subscribe((saved) => {
         if (saved) {
           this.reload();
+          this.notifications.success(data.mode === 'edit' ? 'Transaktion aktualisiert.' : 'Transaktion erstellt.');
         }
       });
   }
