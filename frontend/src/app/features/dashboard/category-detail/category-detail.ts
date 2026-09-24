@@ -9,8 +9,10 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
 import { CategoryBreakdownItem } from '../../../core/models/summary';
 import { Transaction, TransactionQuery } from '../../../core/models/transaction';
+import { NotificationService } from '../../../core/services/notification.service';
 import { MonthStateService } from '../../../core/state/month-state.service';
 import { ConfirmDialog } from '../../../shared/confirm-dialog/confirm-dialog';
+import { LoadingIndicator } from '../../../shared/loading-indicator/loading-indicator';
 import { Money } from '../../../shared/money/money';
 import { MonthSwitcher } from '../../../shared/month-switcher/month-switcher';
 import { BudgetStatus } from '../../../shared/budget-status/budget-status';
@@ -34,6 +36,7 @@ import { SummaryStore } from '../summary-store';
     MatIconModule,
     MatProgressBarModule,
     BudgetStatus,
+    LoadingIndicator,
     Money,
     MonthSwitcher,
     TransactionTable,
@@ -49,6 +52,7 @@ export class CategoryDetail implements OnInit {
   private readonly categoryStore = inject(CategoryStore);
   private readonly monthState = inject(MonthStateService);
   private readonly dialog = inject(MatDialog);
+  private readonly notifications = inject(NotificationService);
 
   private readonly categoryId = toSignal(
     this.route.paramMap.pipe(map((params) => params.get('id') ?? '')),
@@ -59,6 +63,7 @@ export class CategoryDetail implements OnInit {
   protected readonly loadError = this.transactionStore.loadError;
   protected readonly isEmpty = this.transactionStore.isEmpty;
   protected readonly transactions = this.transactionStore.transactions;
+  protected readonly showInitialLoader = computed(() => this.loading() && this.transactions().length === 0);
 
   protected readonly category = computed(
     () => this.categoryStore.categories().find((category) => category.id === this.categoryId()) ?? null,
@@ -115,7 +120,10 @@ export class CategoryDetail implements OnInit {
       .subscribe((confirmed) => {
         if (confirmed) {
           this.transactionStore.delete(transaction.id).subscribe({
-            next: () => this.onMutated(),
+            next: () => {
+              this.onMutated();
+              this.notifications.success('Transaktion gelöscht.');
+            },
             error: () => undefined,
           });
         }
@@ -136,6 +144,7 @@ export class CategoryDetail implements OnInit {
       .subscribe((created) => {
         if (created) {
           this.summaryStore.reload();
+          this.notifications.success('Budget erstellt.');
         }
       });
   }
@@ -147,6 +156,7 @@ export class CategoryDetail implements OnInit {
       .subscribe((saved) => {
         if (saved) {
           this.onMutated();
+          this.notifications.success(data.mode === 'edit' ? 'Transaktion aktualisiert.' : 'Transaktion erstellt.');
         }
       });
   }

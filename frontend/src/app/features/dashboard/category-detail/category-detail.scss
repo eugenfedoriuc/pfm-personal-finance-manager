@@ -1,10 +1,10 @@
 .category-detail {
   max-width: 720px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 40px 24px 64px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
 .category-detail__header {
@@ -14,6 +14,8 @@
 
   h1 {
     margin: 0;
+    font-size: 1.5rem;
+    font-weight: 900;
   }
 }
 
@@ -23,13 +25,13 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--pfm-radius);
   flex-shrink: 0;
 }
 
 .total-card,
 .budget-card {
-  padding: 16px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -37,11 +39,15 @@
 
 .total-card__label {
   color: var(--mat-sys-on-surface-variant);
-  font-size: 0.875rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .total-card__value {
-  font-size: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 .state-card {

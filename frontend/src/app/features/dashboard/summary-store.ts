@@ -1,5 +1,6 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { SummaryApiService } from '../../core/api/summary-api.service';
+import { createMinDurationLoading } from '../../core/utils/min-duration-loading';
 import { MonthlySummary } from '../../core/models/summary';
 import { MonthStateService } from '../../core/state/month-state.service';
 
@@ -14,13 +15,13 @@ export class SummaryStore {
   private readonly monthState = inject(MonthStateService);
 
   private readonly _summary = signal<MonthlySummary | null>(null);
-  private readonly _loading = signal(false);
+  private readonly loadingCtl = createMinDurationLoading();
   private readonly _loadError = signal(false);
 
   readonly summary = this._summary.asReadonly();
-  readonly loading = this._loading.asReadonly();
+  readonly loading = this.loadingCtl.loading;
   readonly loadError = this._loadError.asReadonly();
-  readonly isReady = computed(() => !this._loading() && !this._loadError() && this._summary() !== null);
+  readonly isReady = computed(() => !this.loading() && !this._loadError() && this._summary() !== null);
 
   constructor() {
     effect(() => {
@@ -35,17 +36,17 @@ export class SummaryStore {
   }
 
   private load(year: number, month: number): void {
-    this._loading.set(true);
+    this.loadingCtl.start();
     this._loadError.set(false);
 
     this.api.get(year, month).subscribe({
       next: (summary) => {
         this._summary.set(summary);
-        this._loading.set(false);
+        this.loadingCtl.stop();
       },
       error: () => {
         this._loadError.set(true);
-        this._loading.set(false);
+        this.loadingCtl.stop();
       },
     });
   }

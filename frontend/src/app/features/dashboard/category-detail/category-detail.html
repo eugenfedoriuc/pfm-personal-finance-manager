@@ -7,7 +7,7 @@
     @if (category(); as category) {
       <span
         class="category-detail__icon"
-        [style.background-color]="category.color + '26'"
+        [style.background-color]="category.color + '1f'"
         [style.color]="category.color"
       >
         <mat-icon fontSet="material-symbols-outlined">{{ category.icon }}</mat-icon>
@@ -44,25 +44,29 @@
     }
   }
 
-  @if (loading()) {
-    <mat-progress-bar mode="indeterminate" />
-  }
-
-  @if (loadError()) {
-    <mat-card appearance="outlined" class="state-card">
-      <p>Transaktionen konnten nicht geladen werden.</p>
-      <button mat-button type="button" (click)="reload()">Erneut versuchen</button>
-    </mat-card>
-  } @else if (isEmpty()) {
-    <mat-card appearance="outlined" class="state-card">
-      <p>Es gibt keine Transaktionen in diesem Monat.</p>
-    </mat-card>
+  @if (showInitialLoader()) {
+    <app-loading-indicator label="Transaktionen werden geladen …" />
   } @else {
-    <app-transaction-table
-      [transactions]="transactions()"
-      [showCategory]="false"
-      (edit)="openEditDialog($event)"
-      (delete)="openDeleteDialog($event)"
-    />
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    @if (loadError()) {
+      <mat-card appearance="outlined" class="state-card">
+        <p>Transaktionen konnten nicht geladen werden.</p>
+        <button mat-button type="button" (click)="reload()">Erneut versuchen</button>
+      </mat-card>
+    } @else if (isEmpty()) {
+      <mat-card appearance="outlined" class="state-card">
+        <p>Es gibt keine Transaktionen in diesem Monat.</p>
+      </mat-card>
+    } @else {
+      <app-transaction-table
+        [transactions]="transactions()"
+        [showCategory]="false"
+        (edit)="openEditDialog($event)"
+        (delete)="openDeleteDialog($event)"
+      />
+    }
   }
 </div>

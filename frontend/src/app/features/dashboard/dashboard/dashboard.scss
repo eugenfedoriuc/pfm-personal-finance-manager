@@ -1,43 +1,116 @@
 .dashboard {
-  max-width: 720px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 40px 24px 64px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 28px;
 }
 
-.kpi-row {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.kpi-card {
-  flex: 1;
-  min-width: 160px;
-  padding: 16px;
+.dashboard__header {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.kpi-card__label {
+.dashboard__title {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.dashboard__subtitle {
+  margin: 0;
   color: var(--mat-sys-on-surface-variant);
-  font-size: 0.875rem;
+}
+
+.section-title {
+  margin: 0 0 16px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.kpi-row {
+  display: flex;
+  gap: 1px;
+  flex-wrap: wrap;
+  background-color: var(--mat-sys-outline-variant);
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: var(--pfm-radius);
+  overflow: hidden;
+}
+
+.kpi-card {
+  flex: 1;
+  min-width: 200px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  // Doubled class beats styles.scss's `.mat-mdc-card.mat-mdc-card-outlined` border on specificity.
+  &.mat-mdc-card-outlined.mat-mdc-card-outlined {
+    border: none;
+  }
+
+  &--income,
+  &--expense,
+  &--balance {
+    background-color: var(--mat-sys-surface);
+  }
+}
+
+.kpi-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 4px;
+  border-radius: var(--pfm-radius);
+
+  .kpi-card--income & {
+    color: var(--pfm-income-color);
+    background-color: color-mix(in srgb, var(--pfm-income-color) 12%, transparent);
+  }
+
+  .kpi-card--expense & {
+    color: var(--mat-sys-error);
+    background-color: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+  }
+
+  .kpi-card--balance & {
+    color: var(--mat-sys-primary);
+    background-color: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  }
+}
+
+.kpi-card__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
 }
 
 .kpi-card__value {
-  font-size: 1.5rem;
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 .summary-sentence {
   font-size: 1.125rem;
   line-height: 1.6;
+  color: var(--mat-sys-on-surface-variant);
+  max-width: 70ch;
 }
 
 .chart-card {
-  padding: 16px;
+  padding: 24px;
 }
 
 .chart-card__canvas {
@@ -46,7 +119,7 @@
 }
 
 .expense-list {
-  padding: 8px 16px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
 }
@@ -54,8 +127,9 @@
 .expense-row {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 12px;
-  padding: 12px 0;
+  padding: 16px 0;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
 
   &:last-child {
@@ -75,8 +149,15 @@
   align-items: center;
   gap: 12px;
   min-width: 0;
+  padding: 4px 8px;
+  margin: -4px -8px;
   color: inherit;
   text-decoration: none;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--mat-sys-surface-container-highest);
+  }
 }
 
 .expense-row__icon {
@@ -85,7 +166,7 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
+  border-radius: var(--pfm-radius);
   flex-shrink: 0;
 }
 
@@ -116,7 +197,27 @@
   font-size: 0.875rem;
 }
 
+.expense-row__budget {
+  flex-shrink: 0;
+  width: 160px;
+}
+
+// Below this width the link row (icon/name/amount) and the budget widget each get their own full
+// line instead of being squeezed into one row where every piece of text wraps awkwardly.
+@media (max-width: 640px) {
+  .expense-row__link {
+    flex-basis: 100%;
+  }
+
+  .expense-row__budget {
+    box-sizing: border-box;
+    width: 100%;
+    padding-left: 52px;
+  }
+}
+
 .state-card {
   padding: 24px;
   text-align: center;
 }
+
