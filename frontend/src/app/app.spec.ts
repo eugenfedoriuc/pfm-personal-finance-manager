@@ -20,6 +20,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.app-toolbar__title')?.textContent).toContain('PFM');
+    expect(compiled.querySelector('.app-shell__wordmark')?.textContent).toContain('PFM');
   });
 });

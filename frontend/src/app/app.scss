@@ -1,13 +1,118 @@
-.app-toolbar__title {
-  font-weight: 500;
-  margin-right: 24px;
+:host {
+  display: block;
+  height: 100%;
 }
 
-.app-toolbar__nav {
+// One geometric accent, used exactly once: a three-block orange/yellow/pink strip pinned above
+// the whole shell, echoing the brand palette without tinting the rest of the UI.
+.app-shell__accent-strip {
   display: flex;
-  gap: 8px;
+  height: 4px;
+  background-color: var(--mat-sys-primary);
+
+  &::before,
+  &::after {
+    content: '';
+    display: block;
+  }
+
+  &::before {
+    width: 64px;
+    background-color: var(--pfm-accent-yellow);
+  }
+
+  &::after {
+    width: 24px;
+    background-color: var(--mat-sys-tertiary);
+  }
 }
 
-.active-link {
-  text-decoration: underline;
+.app-shell {
+  height: calc(100% - 4px);
+}
+
+.app-shell__drawer {
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-shell__mark {
+  display: inline-block;
+  flex-shrink: 0;
+  color: var(--mat-sys-primary);
+}
+
+.app-shell__wordmark {
+  font-size: 1.125rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.app-shell__content {
+  background-color: var(--mat-sys-surface-container-low);
+}
+
+.app-shell__toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  gap: 32px;
+  border-bottom: 2px solid var(--mat-sys-on-surface);
+  background-color: var(--mat-sys-surface);
+}
+
+.app-shell__nav {
+  display: flex;
+  align-items: stretch;
+  gap: 28px;
+  height: 100%;
+}
+
+.app-shell__nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 100%;
+  color: var(--mat-sys-on-surface-variant);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 3px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    color: var(--mat-sys-on-surface);
+  }
+}
+
+.app-shell__nav-link--active {
+  color: var(--mat-sys-on-surface);
+  border-bottom-color: var(--mat-sys-primary);
+}
+
+.app-shell__nav-item--active {
+  --mdc-list-list-item-label-text-color: var(--mat-sys-on-primary-container);
+  --mdc-list-list-item-leading-icon-color: var(--mat-sys-on-primary-container);
+  background-color: var(--mat-sys-primary-container);
+  border-left: 3px solid var(--mat-sys-primary);
+}
+
+.app-shell__theme-button {
+  margin-left: auto;
+}
+
+.app-shell__menu-button {
+  margin-left: auto;
+}
+
+.app-shell__main {
+  min-height: calc(100% - 64px);
 }

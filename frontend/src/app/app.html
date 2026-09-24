@@ -1,13 +1,87 @@
-<mat-toolbar color="primary">
-  <span class="app-toolbar__title">PFM</span>
-  <nav class="app-toolbar__nav">
-    <a mat-button routerLink="/dashboard" routerLinkActive="active-link">Übersicht</a>
-    <a mat-button routerLink="/transactions" routerLinkActive="active-link">Transaktionen</a>
-    <a mat-button routerLink="/categories" routerLinkActive="active-link">Kategorien</a>
-    <a mat-button routerLink="/budgets" routerLinkActive="active-link">Budgets</a>
-  </nav>
-</mat-toolbar>
+<div class="app-shell__accent-strip" aria-hidden="true"></div>
 
-<main>
-  <router-outlet />
-</main>
+<mat-sidenav-container class="app-shell">
+  @if (isHandset()) {
+    <mat-sidenav #drawer mode="over" class="app-shell__drawer">
+      <mat-toolbar class="app-shell__brand">
+        <svg class="app-shell__mark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path fill="currentColor" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+        </svg>
+        <span class="app-shell__wordmark">PFM</span>
+        <button
+          mat-icon-button
+          type="button"
+          class="app-shell__theme-button"
+          (click)="toggleTheme()"
+          [attr.aria-label]="themeMode() === 'dark' ? 'Helles Design aktivieren' : 'Dunkles Design aktivieren'"
+        >
+          <mat-icon>{{ themeMode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
+      </mat-toolbar>
+
+      <mat-nav-list>
+        @for (item of navigation; track item.path) {
+          <a
+            mat-list-item
+            [routerLink]="item.path"
+            routerLinkActive="app-shell__nav-item--active"
+            (click)="closeMenu()"
+          >
+            <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+            <span matListItemTitle>{{ item.name }}</span>
+          </a>
+        }
+      </mat-nav-list>
+    </mat-sidenav>
+  }
+
+  <mat-sidenav-content class="app-shell__content">
+    <mat-toolbar class="app-shell__toolbar">
+      <div class="app-shell__brand">
+        <svg class="app-shell__mark" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+          <path fill="currentColor" d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+        </svg>
+        <span class="app-shell__wordmark">PFM</span>
+      </div>
+
+      @if (!isHandset()) {
+        <nav class="app-shell__nav">
+          @for (item of navigation; track item.path) {
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="app-shell__nav-link--active"
+              class="app-shell__nav-link"
+            >
+              {{ item.name }}
+            </a>
+          }
+        </nav>
+
+        <button
+          mat-icon-button
+          type="button"
+          class="app-shell__theme-button"
+          (click)="toggleTheme()"
+          [attr.aria-label]="themeMode() === 'dark' ? 'Helles Design aktivieren' : 'Dunkles Design aktivieren'"
+        >
+          <mat-icon>{{ themeMode() === 'dark' ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
+      } @else {
+        <button
+          mat-icon-button
+          type="button"
+          class="app-shell__menu-button"
+          (click)="toggleMenu()"
+          aria-label="Menü öffnen"
+        >
+          <mat-icon>menu</mat-icon>
+        </button>
+      }
+    </mat-toolbar>
+
+    <main class="app-shell__main">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+</mat-sidenav-container>
+
